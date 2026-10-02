@@ -308,7 +308,8 @@ const L = {
   credits_txt:['Exchange rates: European Central Bank via Frankfurter. Your data stays on this phone.','Курсеви: Европска централна банка преко Frankfurter-а. Твоји подаци остају на овом телефону.','Valutakurser: Den europeiske sentralbanken via Frankfurter. Dataene dine blir på denne telefonen.'],
   storage_fail:['Could not save on this device. Save a backup now.','Чување на уређају није успело. Сачувај бекап одмах.','Kunne ikke lagre på enheten. Lagre en sikkerhetskopi nå.'],
   // Debt Manager import
-  dm_reading:['Reading database…','Читам базу…','Leser databasen…'], dm_bad:['This is not a Debt Manager database ({e})','Ово није Debt Manager база ({e})','Dette er ikke en Debt Manager-database ({e})'],
+  import_unknown:['This file is neither a DebtFlow backup nor a Debt Manager database','Овај фајл није ни DebtFlow бекап ни Debt Manager база','Filen er verken en DebtFlow-sikkerhetskopi eller en Debt Manager-database'],
+  dm_bad:['This is not a Debt Manager database ({e})','Ово није Debt Manager база ({e})','Dette er ikke en Debt Manager-database ({e})'],
   dm_replace_q:['Importing replaces the data that is in DebtFlow now. Continue?','Увоз замењује податке који су сада у DebtFlow-у. Наставити?','Importen erstatter dataene som er i DebtFlow nå. Fortsette?'],
   dm_result:['Import finished','Увоз је завршен','Importen er ferdig'],
   dm_people:['People','Особе','Personer'], dm_debts:['Debts (open / closed)','Дугови (отворени / затворени)','Gjeld (åpne / lukkede)'], dm_entries:['Entries','Уноси','Poster'],
@@ -1467,9 +1468,58 @@ function exportBackup(){
   if(!window.DebtFlowAndroid) toast(t('backup_saved'));
   refresh();
 }
-async function importBackup(file){
+// Both import buttons accept any of: DebtFlow backup (JSON), Debt Manager database (SQLite),
+// or a ZIP holding one of those (Debt Manager backups are zipped). The content decides, not the button.
+async function importFile(file){
+  let buf;
+  try { buf = await file.arrayBuffer(); } catch(e){ toast(t('import_unknown')); return; }
+  let u8 = new Uint8Array(buf);
+  if(u8[0] === 0x50 && u8[1] === 0x4b){
+    let inner = null;
+    try { inner = await unzipPick(buf); } catch(e){}
+    if(!inner){ toast(t('import_unknown')); return; }
+    buf = inner; u8 = new Uint8Array(buf);
+  }
+  if(String.fromCharCode(...u8.subarray(0, 15)) === 'SQLite format 3') return importDmBuffer(buf);
+  let text = '';
+  try { text = new TextDecoder('utf-8').decode(u8).replace(/^\ufeff/, ''); } catch(e){}
+  if(/^\s*[{[]/.test(text)) return importBackupText(text);
+  toast(t('import_unknown'));
+}
+// Minimal ZIP reader: returns the first entry that is a SQLite database or JSON.
+async function unzipPick(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for(let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if(eocd < 0) return null;
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const found = [];
+  for(let i = 0; i < count && dv.getUint32(p, true) === 0x02014b50; i++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+    const off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nlen));
+    found.push({method, csize, off, name});
+    p += 46 + nlen + xlen + clen;
+  }
+  found.sort((a, b) => (/\.(db|json)$/i.test(b.name) ? 1 : 0) - (/\.(db|json)$/i.test(a.name) ? 1 : 0));
+  for(const f of found){
+    if(f.name.endsWith('/') || dv.getUint32(f.off, true) !== 0x04034b50) continue;
+    const start = f.off + 30 + dv.getUint16(f.off + 26, true) + dv.getUint16(f.off + 28, true);
+    const raw = u8.slice(start, start + f.csize);
+    let data;
+    if(f.method === 0) data = raw.buffer;
+    else if(f.method === 8 && typeof DecompressionStream !== 'undefined') data = await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+    else continue;
+    const h = new Uint8Array(data, 0, Math.min(16, data.byteLength));
+    if(String.fromCharCode(...h.subarray(0, 15)) === 'SQLite format 3' || /^\s*[{[]/.test(new TextDecoder().decode(h).replace(/^\ufeff/, ''))) return data;
+  }
+  return null;
+}
+async function importBackupText(text){
   let j;
-  try { j = JSON.parse(await file.text()); } catch(e){ toast(t('import_bad')); return; }
+  try { j = JSON.parse(text); } catch(e){ toast(t('import_bad')); return; }
   const data = j && j.app === 'DebtFlow' ? j.data : j;
   if(!data || !Array.isArray(data.people) || !Array.isArray(data.entries)){ toast(t('import_bad')); return; }
   if(D.entries.length && !await ask(t('import_q'), t('import'))) return;
@@ -1492,12 +1542,10 @@ async function wipeAll(){
 }
 
 /* ---------- Debt Manager import ---------- */
-async function importDmFile(file){
-  toast(t('dm_reading'));
+async function importDmBuffer(buf){
   let res;
-  try { res = importDebtManager(await file.arrayBuffer()); }
+  try { res = importDebtManager(buf); }
   catch(e){ toast(t('dm_bad', {e:e && e.message || e})); return; }
-  const tt = document.querySelector('.toast'); if(tt) tt.remove();
   if(D.entries.length && !await ask(t('dm_replace_q'), t('import'))) return;
   const settings = D.settings;
   D = normalize(res.data); D.settings = settings;
@@ -1603,8 +1651,7 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('change', ev => {
   const el = ev.target;
-  if(el.id === 'file-backup' && el.files[0]){ importBackup(el.files[0]); el.value = ''; return; }
-  if(el.id === 'file-dm' && el.files[0]){ importDmFile(el.files[0]); el.value = ''; return; }
+  if((el.id === 'file-backup' || el.id === 'file-dm') && el.files[0]){ importFile(el.files[0]); el.value = ''; return; }
   if(el.dataset.set){
     const k = el.dataset.set, s = D.settings;
     if(k === 'lang'){ s.lang = el.value; lang = el.value; }
