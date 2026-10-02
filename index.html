@@ -251,6 +251,7 @@ const L = {
   f_by_give:['You pay back','Враћаш дуг','Du betaler tilbake'], f_by_get:['You owe more','Дугујеш више','Du skylder mer'],
   f_new_give:['New debt: they will owe you','Нови дуг: дуговаће ти','Ny gjeld: de skylder deg'], f_new_get:['New debt: you will owe','Нови дуг: дуговаћеш','Ny gjeld: du skylder'],
   amount:['Amount','Износ','Beløp'], currency:['Currency','Валута','Valuta'], more:['More…','Још…','Flere…'],
+  amount_in:['Amount in {cur}','Износ у {cur}','Beløp i {cur}'],
   in_cur:['Sent in {cur}','Послато у {cur}','Sendt i {cur}'], got_in_cur:['Received in {cur}','Примљено у {cur}','Mottatt i {cur}'],
   rate:['Rate (1 {a} = ? {b})','Курс (1 {a} = ? {b})','Kurs (1 {a} = ? {b})'],
   rate_src_live:['ECB rate for {date}','ECB курс за {date}','ECB-kurs for {date}'], rate_src_manual:['Your rate','Твој курс','Din kurs'],
@@ -870,6 +871,9 @@ function drawLayers(){
   const ov = $('overlay');
   // keep scroll position of an open page while re-rendering
   const old = ov.querySelector('.page'); const scroll = old ? old.scrollTop : 0;
+  // keep the focused field (and caret) across re-renders
+  const act = document.activeElement, focusId = act && act.id && ov.contains(act) ? act.id : null;
+  let caret = null; try { caret = focusId ? act.selectionStart : null; } catch(e){}
   let html = '';
   layers.forEach((l, i) => {
     if(l.type === 'page') html += `<div class="page" data-layer="${i}"><div class="wrap">${l.render()}</div></div>`;
@@ -877,6 +881,7 @@ function drawLayers(){
   });
   ov.innerHTML = html;
   const pg = ov.querySelector('.page'); if(pg && scroll) pg.scrollTop = scroll;
+  if(focusId){ const n = $(focusId); if(n){ n.focus(); try { if(caret != null) n.setSelectionRange(caret, caret); } catch(e){} } }
   document.body.classList.toggle('locked', layers.length > 0);
   const top = layers[layers.length - 1];
   if(top && top.after) top.after();
@@ -1218,7 +1223,7 @@ function openEntry(o){
   if(!F.rate) F.rate = fmtRate(cross(F.cur, D.settings.localCur, F.date));
   pushLayer({type:'sheet', form:true, render:renderEntry, after:() => {
     if(!F.personId && !F.newName){ const q = $('pp-q'); if(q && document.activeElement !== q) q.focus(); }
-    else if(!F.amt && !F.editId && !F.focused){ F.focused = true; const a = $('f-amt'); if(a) a.focus(); }
+    else if(!F.amt && !F.editId && !F.focused){ F.focused = true; const a = document.querySelector('.sheet .amount input'); if(a) a.focus(); }
   }});
   if(F.cur !== D.settings.localCur) loadRateForDate();
 }
@@ -1253,15 +1258,20 @@ function renderEntry(){
     <button class="gave ${F.flow === 'give' ? 'on' : ''}" data-act="f-flow" data-flow="give"><b>${ICON.out}${t('give')}</b><span>${sub('give')}</span></button>
     <button class="got ${F.flow === 'get' ? 'on' : ''}" data-act="f-flow" data-flow="get"><b>${ICON.in}${t('get')}</b><span>${sub('get')}</span></button></div>`;
   const foreign = F.cur !== local;
-  const src = rateSource(F.cur === 'EUR' ? local : F.cur, F.date);
+  // Foreign-currency debt: the big field is what actually leaves/arrives in local currency;
+  // the debt-currency amount below follows from it and the rate.
+  const amtBox = foreign
+    ? `<label class="f" style="margin-bottom:6px"><span>${t(F.flow === 'give' ? 'in_cur' : 'got_in_cur', {cur:local})}</span></label>
+       <div class="amount"><input id="f-loc" inputmode="decimal" placeholder="${esc(locPlaceholder() || '0')}" value="${esc(F.loc)}" autocomplete="off" aria-label="${t('amount')}"><span class="c">${esc(curSym(local))}</span></div>`
+    : `<div class="amount"><input id="f-amt" inputmode="decimal" placeholder="0" value="${esc(F.amt)}" autocomplete="off" aria-label="${t('amount')}"><span class="c">${esc(curSym(F.cur))}</span></div>`;
   const locRow = foreign ? `<div class="locrow">
-      <label><span>${t(F.flow === 'give' ? 'in_cur' : 'got_in_cur', {cur:local})}</span><input class="inp" id="f-loc" inputmode="decimal" value="${esc(F.loc)}" placeholder="${esc(locPlaceholder())}" autocomplete="off"></label>
+      <label><span>${t('amount_in', {cur:F.cur})}</span><input class="inp" id="f-amt" inputmode="decimal" value="${esc(F.amt)}" placeholder="0" autocomplete="off"></label>
       <label><span>${t('rate', {a:F.cur, b:local})}</span><input class="inp" id="f-rate" inputmode="decimal" value="${esc(F.rate)}" autocomplete="off"></label></div>
-    <div class="hint" id="f-ratesrc">${F.rateTouched ? t('rate_src_manual') : src === 'live' ? t('rate_src_live', {date:fmtDate(F.date, true)}) : src === 'manual' ? t('rate_src_manual') : t('rate_src_approx')} · ${t('loc_hint')}</div>` : '';
+    <div class="hint" id="f-ratesrc">${rateHint()}</div>` : '';
   const today = startOfDay(Date.now()), dd = startOfDay(F.date);
   return `<h3><span>${edit ? t('edit_entry') : t('new_entry')}</span>${edit ? `<button class="btn sm danger" data-act="f-delete">${t('del')}</button>` : ''}</h3>
     ${who}${curChips}${F.kind === 'close' ? '' : flow}
-    <div class="amount"><input id="f-amt" inputmode="decimal" placeholder="0" value="${esc(F.amt)}" autocomplete="off" aria-label="${t('amount')}"><span class="c">${esc(curSym(F.cur))}</span></div>
+    ${amtBox}
     ${locRow}
     <div class="chips" style="align-items:center">
       <button class="chip ${dd === today ? 'on' : ''}" data-act="f-day" data-d="0">${t('today')}</button>
@@ -1272,6 +1282,10 @@ function renderEntry(){
     <div id="f-prev">${previewHtml()}</div>
     <div class="err" id="f-err">${esc(F.err)}</div>
     <button class="btn" data-act="f-save" id="f-save">${saveLabel()}</button>`;
+}
+function rateHint(){
+  const src = rateSource(F.cur === 'EUR' ? D.settings.localCur : F.cur, F.date);
+  return (F.rateTouched ? t('rate_src_manual') : src === 'live' ? t('rate_src_live', {date:fmtDate(F.date, true)}) : src === 'manual' ? t('rate_src_manual') : t('rate_src_approx')) + ' · ' + t('loc_hint');
 }
 function amtVal(){ const v = parseNum(F.amt); return v > 0 ? v : 0; }
 function locPlaceholder(){
@@ -1295,12 +1309,13 @@ function previewHtml(){
 }
 function saveLabel(){
   const a = amtVal();
-  return a ? `${t('save')} · ${F.flow === 'give' ? '−' : '+'}${fmtMoney(a, F.cur, {abs:true})}` : t('save');
+  const l = parseNum(F.loc), local = D.settings.localCur;
+  return a ? `${t('save')} · ${F.flow === 'give' ? '−' : '+'}${F.cur !== local && l > 0 ? fmtMoney(l, local, {abs:true}) + ' = ' : ''}${fmtMoney(a, F.cur, {abs:true})}` : t('save');
 }
 function updateForm(){
   const pv = $('f-prev'); if(pv) pv.innerHTML = previewHtml();
   const sv = $('f-save'); if(sv) sv.innerHTML = saveLabel();
-  const lc = $('f-loc'); if(lc) lc.placeholder = locPlaceholder();
+  const lc = $('f-loc'); if(lc) lc.placeholder = locPlaceholder() || '0';
 }
 async function loadRateForDate(){
   const want = F.date, cur = F.cur;
@@ -1308,7 +1323,7 @@ async function loadRateForDate(){
   if(!F || F.rateTouched || F.date !== want || F.cur !== cur) return;
   F.rate = fmtRate(cross(F.cur, D.settings.localCur, F.date));
   const r = $('f-rate'); if(r) r.value = F.rate;
-  const s = $('f-ratesrc'); if(s && topLayer() && topLayer().form) drawLayers();
+  const s = $('f-ratesrc'); if(s && topLayer() && topLayer().form) s.innerHTML = rateHint();
   recalcFromLoc();
 }
 function recalcFromLoc(){
@@ -1356,7 +1371,7 @@ function setFormCur(c){
 function saveEntry(){
   const a = amtVal();
   if(!F.personId && !F.newName){ F.err = t('need_person'); drawLayers(); return; }
-  if(!a){ F.err = t('need_amount'); drawLayers(); const x = $('f-amt'); if(x) x.focus(); return; }
+  if(!a){ F.err = t('need_amount'); drawLayers(); const x = document.querySelector('.sheet .amount input'); if(x) x.focus(); return; }
   const snap = JSON.stringify(D);
   if(!F.personId){
     const p = {id:uid(), name:F.newName.trim(), created:Date.now()}; D.people.push(p); F.personId = p.id;
