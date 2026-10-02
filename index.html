@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DebtFlow</title>
+<!-- Bridge features this page needs from the Android app (WebUpdater.NATIVE_API). Raise it when the page
+     starts calling a new DebtFlowAndroid method; older apps then keep their page until the APK is updated. -->
+<meta name="debtflow-native-api" content="1">
+<meta name="color-scheme" content="light dark">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f3f5f4; --card:#ffffff; --card2:#f2f5f4; --ink:#0f1f1b; --ink2:#4a5b56; --muted:#84938f;
+  --line:#e3e9e7; --accent:#0e7c66; --accent-ink:#ffffff; --accent-soft:#e2f3ee;
+  --to:#0f7b4f; --to-soft:#e4f5ec; --by:#c8433a; --by-soft:#fcebe9; --warn:#a46800; --warn-soft:#fdf3df;
+  --shadow:0 1px 2px rgba(15,31,27,.04),0 8px 24px -14px rgba(15,31,27,.16);
+  --hero1:#0b3d33; --hero2:#12806a; --navbg:rgba(255,255,255,.86); --scrim:rgba(8,16,14,.42);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0a100e; --card:#131b18; --card2:#18221f; --ink:#ecf3f0; --ink2:#a7b8b2; --muted:#71837d;
+    --line:#22302b; --accent:#3cc7a4; --accent-ink:#06120f; --accent-soft:#143229;
+    --to:#45d18d; --to-soft:#11291d; --by:#f27a70; --by-soft:#2d1614; --warn:#e5ab45; --warn-soft:#2c2210;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset; --hero1:#0c2a24; --hero2:#126652; --navbg:rgba(19,27,24,.88); --scrim:rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0a100e; --card:#131b18; --card2:#18221f; --ink:#ecf3f0; --ink2:#a7b8b2; --muted:#71837d;
+  --line:#22302b; --accent:#3cc7a4; --accent-ink:#06120f; --accent-soft:#143229;
+  --to:#45d18d; --to-soft:#11291d; --by:#f27a70; --by-soft:#2d1614; --warn:#e5ab45; --warn-soft:#2c2210;
+  --shadow:0 1px 0 rgba(255,255,255,.03) inset; --hero1:#0c2a24; --hero2:#126652; --navbg:rgba(19,27,24,.88); --scrim:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom));overflow-x:hidden}
+body.locked{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink)}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:10px 16px 24px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:6px 0 12px;gap:10px}
+.brand{font-weight:760;font-size:19px;letter-spacing:-.2px;display:flex;align-items:center;gap:9px}
+.brand svg{width:28px;height:28px;border-radius:9px;flex:none}
+.iconbtn{border:0;background:transparent;padding:8px;border-radius:10px;color:var(--ink2);display:inline-flex;align-items:center}
+.iconbtn:active{background:var(--line)}
+.iconbtn svg{width:22px;height:22px}
+h2{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:22px 4px 8px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 2px 10px;line-height:1.4}
+.to{color:var(--to)} .by{color:var(--by)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 100% 0%,rgba(140,255,220,.22),transparent 55%),linear-gradient(150deg,var(--hero1),var(--hero2));color:#fff;border-radius:22px;padding:18px 18px 16px;margin-bottom:14px;box-shadow:0 18px 40px -24px var(--hero2)}
+.hero .lbl{opacity:.78;font-size:12px;font-weight:650;letter-spacing:.4px;text-transform:uppercase}
+.hero .big{font-size:34px;font-weight:760;letter-spacing:-1px;line-height:1.15;margin:2px 0 10px}
+.hero .split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero .box{background:rgba(255,255,255,.12);border-radius:14px;padding:9px 11px}
+.hero .box b{display:block;font-size:17px;font-weight:720}
+.hero .box span{font-size:11.5px;opacity:.8}
+.hero .cur{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.hero .cur span{font-size:12px;background:rgba(255,255,255,.12);padding:3px 9px;border-radius:999px}
+.hero .note{font-size:11.5px;opacity:.7;margin-top:8px}
+
+/* lists */
+.list{background:var(--card);border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-top:1px solid var(--line);background:transparent;width:100%;text-align:left}
+.row:first-child{border-top:0}
+button.row:active{background:var(--card2)}
+.row .main{flex:1;min-width:0}
+.row .name{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .amt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex:none;font-size:15px}
+.av.lg{width:56px;height:56px;font-size:21px}
+.empty{padding:28px 18px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.search{width:100%;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:11px 14px;margin-bottom:12px;outline:none}
+.search:focus{border-color:var(--accent)}
+.fold{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:transparent;padding:4px;margin:18px 0 8px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+
+/* month header + entry rows */
+.mon{font-size:12px;font-weight:700;color:var(--muted);padding:10px 14px 4px;background:var(--card2);border-top:1px solid var(--line);display:flex;justify-content:space-between}
+.mon:first-child{border-top:0}
+.ent{display:flex;gap:11px;align-items:center;padding:10px 14px;border:0;border-top:1px solid var(--line);background:transparent;width:100%;text-align:left}
+.mon+.ent{border-top:0}
+.ent:active{background:var(--card2)}
+.ico{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.ico svg{width:18px;height:18px}
+.ico.gave{background:var(--warn-soft);color:var(--warn)}
+.ico.got{background:var(--to-soft);color:var(--to)}
+.ico.close{background:var(--card2);color:var(--muted)}
+.ent .main{flex:1;min-width:0}
+.ent .t{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .s{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .a{text-align:right;font-weight:680;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ent .a small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.loc{color:var(--ink2);font-weight:500}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--card2);color:var(--muted);border:1px solid var(--line);vertical-align:1px;margin-left:4px}
+
+/* person page */
+.pagehead{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
+.pagehead .t{font-size:22px;font-weight:760;letter-spacing:-.3px;line-height:1.2}
+.pagehead .s{color:var(--muted);font-size:13px}
+.acct{border-radius:18px;padding:15px 16px;margin-bottom:12px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
+.acct .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.acct .dir{font-size:12.5px;font-weight:650}
+.acct .bal{font-size:28px;font-weight:760;letter-spacing:-.6px;font-variant-numeric:tabular-nums;line-height:1.2;margin:2px 0}
+.acct .sub{font-size:12.5px;color:var(--muted)}
+.acct .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.acct.to{border-left:4px solid var(--to)} .acct.by{border-left:4px solid var(--by)}
+.bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:10px 0 6px;border:1px solid var(--line)}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.planbox{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--card2);font-size:13px}
+.planbox .st{font-weight:700}
+.planbox .st.ok{color:var(--to)} .planbox .st.late{color:var(--by)}
+
+/* buttons */
+.btn{border:0;border-radius:13px;padding:12px 16px;font-weight:650;background:var(--accent);color:var(--accent-ink);width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{filter:brightness(.92)}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.ghost{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--by-soft);color:var(--by);border:1px solid transparent}
+.btn.sm{width:auto;padding:8px 12px;font-size:13.5px;border-radius:11px}
+.btn[disabled]{opacity:.45}
+.btnrow{display:flex;gap:8px}
+.btnrow>*{flex:1}
+
+/* settings */
+.set{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:0;border-top:1px solid var(--line);background:transparent;width:100%;text-align:left}
+.set:first-child{border-top:0}
+button.set:active{background:var(--card2)}
+.set .v{color:var(--muted);font-size:13.5px;text-align:right}
+.set select{border:1px solid var(--line);background:var(--card2);border-radius:10px;padding:6px 8px;max-width:58%}
+.remind{display:flex;gap:12px;align-items:center;background:var(--warn-soft);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:13.5px}
+.remind div{flex:1}
+
+/* bottom nav + fab */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--navbg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:20}
+.nav button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;color:var(--muted);padding:6px 10px;border-radius:12px;min-width:70px}
+.nav button svg{width:23px;height:23px}
+.nav button.on{color:var(--accent);font-weight:650}
+.nav .fab{background:var(--accent);color:var(--accent-ink);width:54px;height:54px;min-width:0;border-radius:18px;padding:0;justify-content:center;box-shadow:0 10px 24px -10px var(--accent);margin-top:-22px}
+.nav .fab svg{width:27px;height:27px}
+
+/* overlay pages + sheets */
+.page{position:fixed;inset:0;background:var(--bg);z-index:30;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(30px + env(safe-area-inset-bottom));animation:pin .18s ease-out}
+@keyframes pin{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:40;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--card);border-radius:22px 22px 0 0;max-height:94vh;overflow-y:auto;padding:8px 16px calc(18px + env(safe-area-inset-bottom));animation:sup .2s cubic-bezier(.2,.8,.2,1);max-width:600px;margin:0 auto}
+@keyframes sup{from{transform:translateY(40px);opacity:.3}}
+.sheet .grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:2px auto 10px}
+.sheet h3{margin:4px 0 12px;font-size:18px;letter-spacing:-.2px;display:flex;justify-content:space-between;align-items:center}
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:5px;font-weight:600}
+.inp{width:100%;border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:11px 12px;outline:none}
+.inp:focus{border-color:var(--accent);background:var(--card)}
+textarea.inp{resize:vertical;min-height:44px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:7px 12px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip .av{width:22px;height:22px;font-size:11px}
+.chip small{font-weight:500;opacity:.75}
+
+/* entry form */
+.who{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card2);border:1px solid var(--line);margin-bottom:12px;width:100%;text-align:left}
+.who .main{flex:1;min-width:0}
+.who .name{font-weight:700}
+.who .meta{font-size:12.5px;color:var(--muted)}
+.flow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.flow button{border:2px solid var(--line);background:var(--card2);border-radius:16px;padding:11px 10px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.flow button b{font-size:15px;display:flex;align-items:center;gap:6px}
+.flow button b svg{width:18px;height:18px}
+.flow button span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.flow button.on.gave{border-color:var(--warn);background:var(--warn-soft)}
+.flow button.on.got{border-color:var(--to);background:var(--to-soft)}
+.amount{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:16px;padding:6px 12px;background:var(--card2);margin-bottom:10px}
+.amount:focus-within{border-color:var(--accent);background:var(--card)}
+.amount input{flex:1;min-width:0;border:0;background:transparent;font-size:32px;font-weight:740;letter-spacing:-.6px;padding:4px 0;outline:none;font-variant-numeric:tabular-nums}
+.amount .c{font-weight:700;color:var(--ink2);font-size:17px}
+.locrow{display:grid;grid-template-columns:1.25fr 1fr;gap:8px;margin-bottom:6px}
+.locrow .inp{padding:9px 10px}
+.locrow label>span{font-size:11.5px;color:var(--muted);display:block;margin:0 0 3px 2px}
+.preview{border-radius:14px;padding:11px 13px;margin:6px 0 12px;font-size:13.5px;background:var(--card2);border:1px dashed var(--line)}
+.preview b{font-variant-numeric:tabular-nums}
+.check{display:flex;gap:10px;align-items:center;font-size:14px;margin:0 2px 12px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.err{color:var(--by);font-size:12.5px;margin:-6px 2px 10px}
+
+/* import result */
+.res{font-size:14px}
+.res .kv{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)}
+.res .kv:first-child{border-top:0}
+.verify{border-radius:14px;padding:12px 14px;margin:12px 0;font-weight:650;font-size:14px}
+.verify.ok{background:var(--to-soft);color:var(--to)}
+.verify.bad{background:var(--by-soft);color:var(--by)}
+.verify ul{margin:6px 0 0;padding-left:18px;font-weight:500;font-size:13px}
+details{margin:8px 0}
+details summary{cursor:pointer;font-weight:650;font-size:13.5px;padding:6px 0}
+.mini{font-size:12.5px;color:var(--ink2);max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--card2)}
+.mini div{padding:3px 0;border-top:1px solid var(--line)}
+.mini div:first-child{border-top:0}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#16211e;color:#fff;border-radius:14px;padding:11px 14px;font-size:14px;z-index:60;display:flex;gap:14px;align-items:center;box-shadow:0 12px 30px -10px rgba(0,0,0,.4);max-width:calc(100% - 32px);animation:sup .18s}
+.toast button{border:0;background:transparent;color:#6ee7c5;font-weight:700;padding:0}
+.seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:7px 6px;font-size:13px;font-weight:600;color:var(--ink2)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+</style>
+</head>
+<body>
+<div id="df-app">
+  <div class="wrap" id="view"></div>
+</div>
+<nav class="nav" id="nav"></nav>
+<div id="overlay"></div>
+<input type="file" id="file-backup" accept=".json,application/json,*/*" class="hidden">
+<input type="file" id="file-dm" accept="*/*" class="hidden">
+<script>
+'use strict';
+/* ================= translations ================= */
+// Each key is [English, Serbian (Cyrillic), Norwegian bokmål]. Every UI string needs all three.
+const L = {
+  app_sub:['Debts, simply','Дугови, једноставно','Gjeld, enkelt'],
+  nav_people:['People','Особе','Personer'], nav_activity:['Activity','Промет','Aktivitet'], nav_settings:['Settings','Подешавања','Innstillinger'],
+  add:['Add','Додај','Legg til'], save:['Save','Сачувај','Lagre'], cancel:['Cancel','Откажи','Avbryt'], del:['Delete','Обриши','Slett'],
+  done:['Done','Готово','Ferdig'], edit:['Edit','Измени','Rediger'], undo:['Undo','Поништи','Angre'], close:['Close','Затвори','Lukk'],
+  owed_to_me:['Owed to me','Дугују мени','Andre skylder meg'], i_owe:['I owe','Ја дугујем','Jeg skylder'], net:['Net','Нето','Netto'],
+  net_hint:['Converted to {cur} at current rates','Прерачунато у {cur} по данашњем курсу','Omregnet til {cur} med dagens kurs'],
+  owes_you:['Owes you','Дугује ти','Skylder deg'], you_owe:['You owe','Дугујеш','Du skylder'], settled:['Settled','Измирено','Oppgjort'],
+  settled_people:['Settled','Измирени','Oppgjort'],
+  search_people:['Search people','Претражи особе','Søk etter personer'], search_all:['Search notes, people, amounts','Претражи белешке, особе, износе','Søk i notater, personer, beløp'],
+  no_people:['No debts yet','Још нема дугова','Ingen gjeld ennå'],
+  no_people_hint:['Tap + to record money you gave or got, or import your Debt Manager database in Settings.','Тапни + да упишеш новац који си дао или добио, или увези базу из Debt Manager-а у Подешавањима.','Trykk + for å registrere penger du har gitt eller fått, eller importer Debt Manager-databasen under Innstillinger.'],
+  no_entries:['Nothing here yet','Још ништа','Ingenting her ennå'],
+  // entry form
+  new_entry:['New entry','Нови унос','Ny post'], edit_entry:['Edit entry','Измени унос','Rediger post'],
+  person:['Person','Особа','Person'], pick_person:['Who?','Ко?','Hvem?'], new_person:['New person','Нова особа','Ny person'],
+  add_person_named:['Add “{name}”','Додај „{name}“','Legg til «{name}»'], change:['change','промени','endre'],
+  type_name:['Type a name','Упиши име','Skriv et navn'],
+  give:['I give','Дајем','Jeg gir'], get:['I get','Добијам','Jeg får'],
+  f_to_give:['They owe you more','Дугује ти више','Skylder deg mer'], f_to_get:['They pay you back','Враћа ти','Betaler deg tilbake'],
+  f_by_give:['You pay back','Враћаш дуг','Du betaler tilbake'], f_by_get:['You owe more','Дугујеш више','Du skylder mer'],
+  f_new_give:['New debt: they will owe you','Нови дуг: дуговаће ти','Ny gjeld: de skylder deg'], f_new_get:['New debt: you will owe','Нови дуг: дуговаћеш','Ny gjeld: du skylder'],
+  amount:['Amount','Износ','Beløp'], currency:['Currency','Валута','Valuta'], more:['More…','Још…','Flere…'],
+  in_cur:['Sent in {cur}','Послато у {cur}','Sendt i {cur}'], got_in_cur:['Received in {cur}','Примљено у {cur}','Mottatt i {cur}'],
+  rate:['Rate (1 {a} = ? {b})','Курс (1 {a} = ? {b})','Kurs (1 {a} = ? {b})'],
+  rate_src_live:['ECB rate for {date}','ECB курс за {date}','ECB-kurs for {date}'], rate_src_manual:['Your rate','Твој курс','Din kurs'],
+  rate_src_approx:['Approximate rate, check it','Приближан курс, провери га','Omtrentlig kurs, sjekk den'],
+  loc_hint:['Fill in either field; the other is calculated.','Попуни било које поље, друго се рачуна.','Fyll ut ett av feltene, det andre regnes ut.'],
+  date:['Date','Датум','Dato'], today:['Today','Данас','I dag'], yesterday:['Yesterday','Јуче','I går'],
+  note:['Note','Белешка','Notat'], note_ph:['e.g. sent via bank','нпр. послато преко банке','f.eks. sendt via banken'],
+  after:['After this','После овога','Etter dette'], bal_zero:['Balance will be 0','Стање ће бити 0','Saldo blir 0'],
+  close_when_zero:['Mark the debt as settled','Означи дуг као измирен','Merk gjelden som oppgjort'],
+  need_person:['Pick a person','Изабери особу','Velg en person'], need_amount:['Enter an amount','Унеси износ','Skriv inn et beløp'],
+  saved:['Saved','Сачувано','Lagret'], deleted:['Deleted','Обрисано','Slettet'],
+  del_entry_q:['Delete this entry?','Обрисати овај унос?','Slette denne posten?'],
+  // labels in lists
+  given:['Paid out','Дато','Gitt'], received:['Received','Примљено','Mottatt'], closed_entry:['Debt closed','Дуг затворен','Gjeld lukket'],
+  balance_after:['balance {v}','стање {v}','saldo {v}'], inferred:['estimated from note','процењено из белешке','anslått fra notat'],
+  // person page
+  accounts:['Open debts','Отворени дугови','Åpne gjeldsposter'], history:['History','Историја','Historikk'],
+  closed_accounts:['Closed ({n})','Затворени ({n})','Lukket ({n})'], since:['since {d}','од {d}','siden {d}'],
+  closed_on:['closed {d}','затворен {d}','lukket {d}'],
+  add_entry:['Add entry','Унос','Ny post'], plan:['Plan','План','Plan'], share:['Share','Подели','Del'],
+  close_debt:['Close','Затвори','Lukk'], reopen:['Reopen','Поново отвори','Åpne igjen'],
+  close_q:['Close this debt? The remaining {v} will be written off.','Затворити овај дуг? Преосталих {v} се отписује.','Lukke denne gjelden? Resten på {v} avskrives.'],
+  close_zero_q:['Mark this debt as settled?','Означити овај дуг као измирен?','Merke gjelden som oppgjort?'],
+  rename:['Rename','Преименуј','Gi nytt navn'], merge:['Merge into…','Споји са…','Slå sammen med…'], del_person:['Delete person','Обриши особу','Slett person'],
+  del_person_q:['Delete {name} and all their debts?','Обрисати особу {name} и све њене дугове?','Slette {name} og all gjeld?'],
+  merge_hint:['All debts of {name} move to the person you pick.','Сви дугови особе {name} прелазе на особу коју изабереш.','All gjeld for {name} flyttes til personen du velger.'],
+  merged:['Merged','Спојено','Slått sammen'], name:['Name','Име','Navn'],
+  // plan
+  plan_title:['Repayment plan','План отплате','Nedbetalingsplan'], plan_amount:['Per month','Месечно','Per måned'],
+  plan_start:['From','Од','Fra'], plan_remove:['Remove plan','Уклони план','Fjern plan'],
+  plan_hint:['For example 10 000 NOK a month on a debt in euros. Payments are counted in the plan currency.','На пример 10 000 NOK месечно на дуг у еврима. Уплате се рачунају у валути плана.','For eksempel 10 000 NOK i måneden på en gjeld i euro. Innbetalinger regnes i planens valuta.'],
+  plan_ahead:['Ahead of plan by {v}','Испред плана {v}','Foran planen med {v}'], plan_behind:['Behind plan by {v}','Касни {v}','Etter planen med {v}'],
+  plan_on:['On plan','По плану','I rute'], plan_paid:['Paid {a} of {b} due so far','Плаћено {a} од {b} до сада','Betalt {a} av {b} hittil'],
+  plan_left:['About {n} more months · done around {d}','Још око {n} мес. · крај око {d}','Omtrent {n} måneder til · ferdig rundt {d}'],
+  plan_month:['{v} / month','{v} месечно','{v} / mnd'],
+  // settings
+  language:['Language','Језик','Språk'], theme:['Theme','Тема','Tema'], th_auto:['Automatic','Аутоматски','Automatisk'], th_light:['Light','Светла','Lys'], th_dark:['Dark','Тамна','Mørk'],
+  local_cur:['Local currency','Локална валута','Lokal valuta'], cur_auto:['Follow location','Према локацији','Følg posisjon'],
+  cur_auto_hint:['When on, the app checks your location once at start and picks the local currency. Choosing a currency turns this off.','Кад је укључено, апликација при покретању једном провери локацију и изабере локалну валуту. Избор валуте ово искључује.','Når dette er på, sjekker appen posisjonen én gang ved oppstart og velger lokal valuta. Velger du en valuta, slås dette av.'],
+  cur_from_loc:['Local currency: {cur} (from location)','Локална валута: {cur} (према локацији)','Lokal valuta: {cur} (fra posisjon)'],
+  rates:['Exchange rates','Курсеви','Valutakurser'], rates_upd:['ECB rates from {d}','ECB курсеви од {d}','ECB-kurser fra {d}'], rates_none:['Built-in approximate rates','Уграђени приближни курсеви','Innebygde omtrentlige kurser'],
+  refresh:['Refresh','Освежи','Oppdater'], rates_ok:['Rates updated','Курсеви ажурирани','Kurser oppdatert'], rates_fail:['Could not get rates. Are you online?','Курсеви нису преузети. Има ли интернета?','Fikk ikke hentet kurser. Er du på nett?'],
+  rates_hint:['Tap a rate to set your own. RSD and BAM are not in the ECB list; their rate is fixed in the app unless you set one.','Тапни курс да упишеш свој. RSD и BAM нису на ECB листи, па им је курс уграђен док не упишеш свој.','Trykk på en kurs for å sette din egen. RSD og BAM er ikke på ECB-listen; kursen er innebygd til du setter din egen.'],
+  manual:['manual','ручно','manuell'], rate_q:['1 {a} in {b} (empty = automatic)','1 {a} у {b} (празно = аутоматски)','1 {a} i {b} (tom = automatisk)'],
+  data:['Data','Подаци','Data'], export:['Save backup','Сачувај бекап','Lagre sikkerhetskopi'], import:['Restore from backup','Врати из бекапа','Gjenopprett fra sikkerhetskopi'],
+  import_dm:['Import from Debt Manager','Увези из Debt Manager-а','Importer fra Debt Manager'],
+  import_dm_hint:['In Debt Manager: Settings → Export database, then pick the .db file here. It is read on the phone and never sent anywhere.','У Debt Manager-у: Подешавања → Export database, па овде изабери .db фајл. Чита се на телефону и никуда се не шаље.','I Debt Manager: Innstillinger → Export database, og velg .db-filen her. Den leses på telefonen og sendes ingen steder.'],
+  csv:['Export CSV (Excel)','Извези CSV (Excel)','Eksporter CSV (Excel)'], wipe:['Delete all data','Обриши све податке','Slett alle data'],
+  wipe_q:['Delete all data? Save a backup first if you need it.','Обрисати све податке? Прво сачувај бекап ако ти треба.','Slette alle data? Lagre en sikkerhetskopi først om du trenger den.'],
+  import_q:['Replace the current data with the backup?','Заменити тренутне податке подацима из бекапа?','Erstatte dataene med sikkerhetskopien?'],
+  import_ok:['Data restored','Подаци су враћени','Data gjenopprettet'], import_bad:['This is not a DebtFlow backup','Ово није DebtFlow бекап','Dette er ikke en DebtFlow-sikkerhetskopi'],
+  backup_saved:['Backup saved','Бекап је сачуван','Sikkerhetskopi lagret'], last_backup:['Last backup: {d}','Последњи бекап: {d}','Siste sikkerhetskopi: {d}'],
+  backup_never:['No backup yet','Бекап још није направљен','Ingen sikkerhetskopi ennå'], backup_old:['Last backup {n} days ago','Последњи бекап пре {n} дана','Siste sikkerhetskopi for {n} dager siden'],
+  about:['About','О апликацији','Om'], author:['Author','Аутор','Utvikler'], version:['Version','Верзија','Versjon'], check_updates:['Check for updates','Провери ажурирања','Se etter oppdateringer'],
+  credits_txt:['Exchange rates: European Central Bank via Frankfurter. Your data stays on this phone.','Курсеви: Европска централна банка преко Frankfurter-а. Твоји подаци остају на овом телефону.','Valutakurser: Den europeiske sentralbanken via Frankfurter. Dataene dine blir på denne telefonen.'],
+  storage_fail:['Could not save on this device. Save a backup now.','Чување на уређају није успело. Сачувај бекап одмах.','Kunne ikke lagre på enheten. Lagre en sikkerhetskopi nå.'],
+  // Debt Manager import
+  dm_reading:['Reading database…','Читам базу…','Leser databasen…'], dm_bad:['This is not a Debt Manager database ({e})','Ово није Debt Manager база ({e})','Dette er ikke en Debt Manager-database ({e})'],
+  dm_replace_q:['Importing replaces the data that is in DebtFlow now. Continue?','Увоз замењује податке који су сада у DebtFlow-у. Наставити?','Importen erstatter dataene som er i DebtFlow nå. Fortsette?'],
+  dm_result:['Import finished','Увоз је завршен','Importen er ferdig'],
+  dm_people:['People','Особе','Personer'], dm_debts:['Debts (open / closed)','Дугови (отворени / затворени)','Gjeld (åpne / lukkede)'], dm_entries:['Entries','Уноси','Poster'],
+  dm_zero:['Skipped zero amounts','Прескочени нулти износи','Hoppet over nullbeløp'], dm_orphans:['Payments without a debt (skipped)','Уплате без дуга (прескочене)','Betalinger uten gjeld (hoppet over)'],
+  dm_inferred:['Local amounts read from notes','Локални износи прочитани из белешки','Lokale beløp lest fra notater'],
+  dm_match:['Balances match Debt Manager exactly','Стања се тачно поклапају са Debt Manager-ом','Saldoene stemmer nøyaktig med Debt Manager'],
+  dm_mismatch:['Balances differ from Debt Manager:','Стања се разликују од Debt Manager-а:','Saldoene avviker fra Debt Manager:'],
+  dm_nopivot:['Debt Manager totals (namePivot) not found, nothing to compare','Debt Manager збирови (namePivot) нису нађени, нема поређења','Fant ikke Debt Manager-summene (namePivot), ingenting å sammenligne'],
+  dm_diff:['{name} · {cur} · {dir}: DebtFlow {a}, Debt Manager {b}','{name} · {cur} · {dir}: DebtFlow {a}, Debt Manager {b}','{name} · {cur} · {dir}: DebtFlow {a}, Debt Manager {b}'],
+  dm_skipped_contacts:['Contacts without debts (not imported)','Контакти без дугова (нису увезени)','Kontakter uten gjeld (ikke importert)'],
+  // sharing
+  st_title:['{name} · balance on {d}','{name} · стање на дан {d}','{name} · saldo per {d}'], st_owes:['You owe me {v}','Дугујеш ми {v}','Du skylder meg {v}'],
+  st_iowe:['I owe you {v}','Дугујем ти {v}','Jeg skylder deg {v}'], st_last:['Latest:','Последње:','Siste:'],
+  copied:['Copied','Копирано','Kopiert'],
+  update_web:['Updates come in by themselves','Ажурирања стижу сама','Oppdateringer kommer av seg selv'],
+};
+const LANGS = ['en','sr','nb'];
+const LANG_NAMES = {en:'English', sr:'Српски', nb:'Norsk'};
+const AUTHOR = 'Ivan St. Epicurus001 - Srbija/Norge';
+let lang = 'en';
+function t(k, v){
+  const e = L[k]; let s = e ? (e[LANGS.indexOf(lang)] || e[0]) : k;
+  if(v) for(const n in v) s = s.split('{' + n + '}').join(v[n]);
+  return s;
+}
+function phoneLang(){
+  const l = (navigator.language || 'en').toLowerCase();
+  if(/^(sr|hr|bs|me|sh)/.test(l)) return 'sr';
+  if(/^(nb|no|nn)/.test(l)) return 'nb';
+  return 'en';
+}
+const LOCALE = {en:'en-GB', sr:'sr-RS', nb:'nb-NO'};
+
+/* ================= currencies & rates ================= */
+const MAIN_CURS = ['NOK','EUR','RSD','USD'];
+const MORE_CURS = ['SEK','DKK','GBP','CHF','BAM','HUF','PLN','CZK','RON','BGN','TRY','CAD','AUD','JPY','MKD','ALL'];
+const SYM = {EUR:'€', USD:'$', GBP:'£', NOK:'kr', JPY:'¥'};
+// Units per 1 EUR. Used until the ECB rates are fetched, and always for RSD/BAM (not published by the ECB).
+const FALLBACK = {EUR:1, NOK:11.7, RSD:117.2, USD:1.17, SEK:11.0, DKK:7.46, GBP:0.87, CHF:0.94, BAM:1.95583,
+  HUF:390, PLN:4.26, CZK:24.4, RON:5.08, BGN:1.95583, TRY:48, CAD:1.62, AUD:1.78, JPY:172, MKD:61.5, ALL:98};
+const RATES_URL = 'https://api.frankfurter.dev/v1/';
+
+/* ================= utilities ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const round2 = x => Math.round(x * 100) / 100;
+const DAY = 864e5;
+function startOfDay(ms){ const d = new Date(ms); d.setHours(0,0,0,0); return d.getTime(); }
+function isoDate(ms){ const d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function fromIso(s){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); if(!m) return NaN; return new Date(+m[1], +m[2]-1, +m[3], 12).getTime(); }
+function fmtDate(ms, withYear){
+  const d = new Date(ms), now = new Date();
+  const o = {day:'numeric', month:'short'};
+  if(withYear || d.getFullYear() !== now.getFullYear()) o.year = 'numeric';
+  try { return d.toLocaleDateString(LOCALE[lang], o); } catch(e){ return isoDate(ms); }
+}
+// inSentence: keep the month lowercase where the language does so mid-sentence
+function fmtMonth(ms, inSentence){
+  try { const s = new Date(ms).toLocaleDateString(LOCALE[lang], {month:'long', year:'numeric'}); return inSentence ? s : s.charAt(0).toUpperCase() + s.slice(1); }
+  catch(e){ return isoDate(ms).slice(0, 7); }
+}
+function fmtNum(x, dec){
+  const n = Math.abs(x) < 0.005 ? 0 : x;
+  const d = dec != null ? dec : (Math.abs(n - Math.round(n)) < 0.005 ? 0 : 2);
+  try { return n.toLocaleString(LOCALE[lang], {minimumFractionDigits:d, maximumFractionDigits:d}).replace(/−/g, '-'); }
+  catch(e){ return n.toFixed(d); }
+}
+function curSym(c){ if(c === 'RSD') return lang === 'sr' ? 'дин.' : 'RSD'; return SYM[c] || c; }
+function fmtMoney(x, cur, opt){
+  opt = opt || {};
+  const s = fmtNum(opt.abs ? Math.abs(x) : x, opt.dec).replace(/^-/, '\u2212');
+  const sym = curSym(cur);
+  if(lang === 'en' && (cur === 'EUR' || cur === 'GBP' || cur === 'USD' || cur === 'JPY')){
+    return s.startsWith('\u2212') ? '\u2212' + sym + s.slice(1) : sym + s;
+  }
+  return s + '\u00a0' + sym;
+}
+// Reads "1 234,56", "1.234,56", "1234.56", "1,5". Returns NaN when it is not a number.
+function parseNum(str){
+  let s = String(str == null ? '' : str).trim().replace(/[\s  ']/g, '').replace(/^\+/, '');
+  if(!s) return NaN;
+  const neg = /^[-−]/.test(s); s = s.replace(/^[-−]/, '');
+  const hasC = s.includes(','), hasD = s.includes('.');
+  if(hasC && hasD){
+    if(s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(/,/g, '');
+  } else if(hasC){
+    s = (lang === 'en' && /^\d{1,3}(,\d{3})+$/.test(s)) ? s.replace(/,/g, '') : s.replace(',', '.');
+  } else if(hasD && /^\d{1,3}(\.\d{3})+$/.test(s) && lang !== 'en'){
+    s = s.replace(/\./g, '');
+  }
+  if(!/^\d*\.?\d+$|^\d+\.$/.test(s)) return NaN;
+  const n = parseFloat(s);
+  return neg ? -n : n;
+}
+// Number for an input field: no grouping, locale decimal mark.
+function fmtInput(x){
+  if(x == null || isNaN(x)) return '';
+  let s = String(round2(x));
+  return lang === 'en' ? s : s.replace('.', ',');
+}
+function fmtRate(x){
+  if(!x || !isFinite(x)) return '';
+  const s = String(+x.toFixed(x >= 100 ? 2 : x >= 1 ? 4 : 6));
+  return lang === 'en' ? s : s.replace('.', ',');
+}
+const COLORS = ['#0e7c66','#2a62d6','#b4521f','#8a3fbf','#c23b6a','#2f7f9e','#6c7a14','#9a6a00','#4757c9','#1b8a4e'];
+function colorFor(s){ let h = 0; for(const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+function initials(name){
+  const p = String(name || '?').trim().split(/\s+/).filter(Boolean);
+  return ((p[0] || '?')[0] + (p.length > 1 && p[1][0] && !/^(и|i|og|and|&)$/i.test(p[1]) ? p[1][0] : '')).toUpperCase();
+}
+function avatar(p, cls){ return `<span class="av ${cls || ''}" style="background:${colorFor(p.name)}">${esc(initials(p.name))}</span>`; }
+
+const ICON = {
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg>',
+  activity:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>',
+  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+  in:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7L7 17M15 17H7V9"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  logo:'<svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b3d33"/><stop offset="1" stop-color="#14a083"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M8 12h12l-3.5-3.5M24 20H12l3.5 3.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+/* ================= data ================= */
+// D: user data (schema 1), saved in localStorage. C: exchange-rate cache (not in backups).
+const STORE_KEY = 'debtflow.data.v1', CACHE_KEY = 'debtflow.cache.v1';
+function blank(){
+  return {schema:1, people:[], debts:[], entries:[],
+    settings:{lang:null, theme:'auto', localCur:'NOK', curAuto:true, manualRates:{}, lastBackup:0, recentCurs:[]}};
+}
+// Fills in defaults so older data and backups keep loading.
+function normalize(d){
+  const b = blank();
+  if(!d || typeof d !== 'object') return b;
+  const out = {schema:1,
+    people: Array.isArray(d.people) ? d.people.filter(p => p && p.id).map(p => ({id:String(p.id), name:String(p.name || '?'), created:+p.created || 0})) : [],
+    debts: Array.isArray(d.debts) ? d.debts.filter(x => x && x.id && x.personId).map(x => ({id:String(x.id), personId:String(x.personId),
+      dir:x.dir === 'by' ? 'by' : 'to', currency:String(x.currency || 'EUR').toUpperCase(), title:String(x.title || ''),
+      opened:+x.opened || 0, closed:x.closed ? +x.closed : null,
+      plan:x.plan && +x.plan.amt > 0 ? {amt:+x.plan.amt, cur:String(x.plan.cur || x.currency), start:+x.plan.start || Date.now()} : null})) : [],
+    entries: Array.isArray(d.entries) ? d.entries.filter(e => e && e.id && e.debtId && isFinite(+e.amount)).map(e => {
+      const o = {id:String(e.id), debtId:String(e.debtId), date:+e.date || 0, amount:+e.amount, note:String(e.note || ''), kind:e.kind === 'close' ? 'close' : 'tx'};
+      if(e.loc && +e.loc.amt) o.loc = {amt:+e.loc.amt, cur:String(e.loc.cur || 'NOK'), rate:+e.loc.rate || 0, inferred:!!e.loc.inferred};
+      return o; }) : [],
+    settings:Object.assign(b.settings, d.settings || {})};
+  if(!out.settings.manualRates || typeof out.settings.manualRates !== 'object') out.settings.manualRates = {};
+  if(!Array.isArray(out.settings.recentCurs)) out.settings.recentCurs = [];
+  return out;
+}
+let D = blank(), C = {rates:null, date:null, hist:{}}, storageOk = true;
+function load(){
+  try { const s = localStorage.getItem(STORE_KEY); if(s) D = normalize(JSON.parse(s)); } catch(e){ D = blank(); storageOk = false; }
+  try { const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); if(c && c.rates) C = Object.assign({hist:{}}, c); } catch(e){}
+}
+function save(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(D)); storageOk = true; }
+  catch(e){ if(storageOk) toast(t('storage_fail')); storageOk = false; }
+}
+function saveCache(){
+  try {
+    const keys = Object.keys(C.hist || {}); if(keys.length > 300) keys.sort().slice(0, keys.length - 300).forEach(k => delete C.hist[k]);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(C));
+  } catch(e){}
+}
+
+/* ---------- lookups and balances ---------- */
+const person = id => D.people.find(p => p.id === id);
+const debt = id => D.debts.find(x => x.id === id);
+function entriesOf(debtId){ return D.entries.filter(e => e.debtId === debtId).sort((a, b) => a.date - b.date || 0); }
+function balance(debtId){ let s = 0; for(const e of D.entries) if(e.debtId === debtId) s += e.amount; return round2(s); }
+// Signed from my side: positive = they owe me, negative = I owe them.
+function signed(d, bal){ return d.dir === 'to' ? bal : -bal; }
+function openDebts(personId){ return D.debts.filter(d => d.personId === personId && !d.closed); }
+// Net per currency for a person over open debts: {EUR: 1200, NOK: -500}
+function personNet(personId){
+  const m = {};
+  for(const d of openDebts(personId)){ m[d.currency] = round2((m[d.currency] || 0) + signed(d, balance(d.id))); }
+  return m;
+}
+function lastActivity(personId){
+  let m = 0; const ids = new Set(D.debts.filter(d => d.personId === personId).map(d => d.id));
+  for(const e of D.entries) if(ids.has(e.debtId) && e.date > m) m = e.date;
+  return m;
+}
+// money flow of an entry from my side: true = money went from me to them
+function gaveFlow(d, amount){ return (d.dir === 'to') === (amount > 0); }
+
+/* ---------- rates ---------- */
+// Units of `cur` per 1 EUR: manual > ECB > built-in.
+function perEur(cur, date){
+  if(cur === 'EUR') return 1;
+  const man = D.settings.manualRates[cur];
+  if(man > 0) return man;
+  if(date){ const h = C.hist && C.hist[isoDate(date)]; if(h && h[cur]) return h[cur]; }
+  if(C.rates && C.rates[cur]) return C.rates[cur];
+  return FALLBACK[cur] || 0;
+}
+function rateSource(cur, date){
+  if(cur === 'EUR') return 'live';
+  if(D.settings.manualRates[cur] > 0) return 'manual';
+  if(date && C.hist && C.hist[isoDate(date)] && C.hist[isoDate(date)][cur]) return 'live';
+  if(C.rates && C.rates[cur]) return 'live';
+  return 'approx';
+}
+// How many `to` for 1 `from`.
+function cross(from, to, date){
+  if(from === to) return 1;
+  const a = perEur(from, date), b = perEur(to, date);
+  return a && b ? b / a : 0;
+}
+function convert(x, from, to){ const r = cross(from, to); return r ? x * r : 0; }
+// Requests go through the Android app when present (no CORS limits there); otherwise fetch.
+let httpSeq = 0; const httpWait = {};
+window.DF_httpDone = (id, status, body) => { const f = httpWait[id]; delete httpWait[id]; if(f) f(status, body); };
+function http(url){
+  const A = window.DebtFlowAndroid;
+  if(A && A.http) return new Promise((res, rej) => {
+    const id = ++httpSeq; const timer = setTimeout(() => { delete httpWait[id]; rej(new Error('timeout')); }, 20000);
+    httpWait[id] = (st, body) => { clearTimeout(timer); st >= 200 && st < 300 ? res(body) : rej(new Error('HTTP ' + st)); };
+    A.http(id, 'GET', url, '', '');
+  });
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = setTimeout(() => ctl && ctl.abort(), 12000);
+  return fetch(url, ctl ? {signal:ctl.signal} : {}).then(r => { clearTimeout(timer); if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+}
+async function updateRates(manual){
+  try {
+    const j = JSON.parse(await http(RATES_URL + 'latest?base=EUR'));
+    if(!j || !j.rates) throw new Error('bad');
+    C.rates = Object.assign({EUR:1}, j.rates); C.date = j.date; C.fetched = Date.now(); saveCache();
+    if(manual) toast(t('rates_ok'));
+    render();
+  } catch(e){ if(manual) toast(t('rates_fail')); }
+}
+// ECB rates for one day (used when an entry in a foreign currency has a past date).
+async function histRates(date){
+  const k = isoDate(date);
+  if(C.hist[k]) return C.hist[k];
+  if(startOfDay(date) >= startOfDay(Date.now())) return null;
+  try {
+    const j = JSON.parse(await http(RATES_URL + k + '?base=EUR'));
+    if(j && j.rates){ C.hist[k] = Object.assign({EUR:1}, j.rates); saveCache(); return C.hist[k]; }
+  } catch(e){}
+  return null;
+}
+
+/* ---------- location → local currency (offline: nearest known city) ---------- */
+const CITIES = [
+  ['NOK',59.91,10.75],['NOK',60.39,5.32],['NOK',63.43,10.40],['NOK',58.97,5.73],['NOK',69.65,18.96],['NOK',67.28,14.40],['NOK',62.47,6.15],['NOK',58.15,8.0],['NOK',61.12,10.47],['NOK',70.66,23.68],
+  ['SEK',59.33,18.07],['SEK',57.71,11.97],['SEK',55.60,13.0],['SEK',63.83,20.26],['SEK',65.58,22.15],['SEK',59.38,13.50],['SEK',62.39,17.31],
+  ['DKK',55.68,12.57],['DKK',56.16,10.20],['DKK',55.40,10.39],['DKK',57.05,9.92],
+  ['EUR',60.17,24.94],['EUR',61.50,23.79],['EUR',65.01,25.47],['EUR',59.44,24.75],['EUR',56.95,24.11],['EUR',54.69,25.28],
+  ['EUR',52.52,13.40],['EUR',53.55,9.99],['EUR',48.14,11.58],['EUR',50.94,6.96],['EUR',50.11,8.68],['EUR',51.34,12.37],
+  ['EUR',48.21,16.37],['EUR',47.07,15.44],['EUR',47.27,11.39],['EUR',52.37,4.90],['EUR',50.85,4.35],['EUR',49.61,6.13],
+  ['EUR',48.86,2.35],['EUR',45.76,4.84],['EUR',43.30,5.37],['EUR',44.84,-0.58],['EUR',48.11,-1.68],
+  ['EUR',41.90,12.50],['EUR',45.46,9.19],['EUR',40.85,14.27],['EUR',37.50,15.09],['EUR',45.44,12.32],['EUR',44.49,11.34],
+  ['EUR',40.42,-3.70],['EUR',41.39,2.17],['EUR',37.39,-5.98],['EUR',39.47,-0.38],['EUR',43.26,-2.93],['EUR',38.72,-9.14],['EUR',41.15,-8.61],
+  ['EUR',53.35,-6.26],['EUR',37.98,23.73],['EUR',40.64,22.94],['EUR',35.34,25.13],['EUR',46.06,14.51],['EUR',48.15,17.11],['EUR',48.72,21.26],
+  ['EUR',45.81,15.98],['EUR',43.51,16.44],['EUR',42.65,18.09],['EUR',45.33,14.44],['EUR',42.44,19.26],['EUR',42.29,18.84],['EUR',42.66,21.17],
+  ['EUR',35.90,14.51],['EUR',35.17,33.36],['EUR',34.68,33.04],
+  ['RSD',44.79,20.45],['RSD',45.27,19.83],['RSD',43.32,21.90],['RSD',44.02,20.91],['RSD',46.10,19.67],['RSD',43.89,20.35],['RSD',44.27,19.88],['RSD',43.14,20.52],['RSD',44.62,21.18],['RSD',45.38,20.39],['RSD',43.58,21.33],['RSD',42.55,21.90],
+  ['BAM',43.86,18.41],['BAM',44.77,17.19],['BAM',44.54,18.67],['BAM',43.34,17.81],['BAM',42.71,18.34],['BAM',44.76,19.21],
+  ['MKD',42.00,21.43],['MKD',41.12,20.80],['ALL',41.33,19.82],
+  ['HUF',47.50,19.04],['HUF',46.25,20.15],['HUF',47.53,21.63],['HUF',46.07,18.23],
+  ['RON',44.43,26.10],['RON',46.77,23.60],['RON',45.75,21.23],['RON',47.16,27.59],['RON',44.18,28.63],
+  ['BGN',42.70,23.32],['BGN',42.14,24.75],['BGN',43.21,27.91],
+  ['PLN',52.23,21.01],['PLN',50.06,19.94],['PLN',54.35,18.65],['PLN',51.11,17.03],['PLN',52.41,16.93],
+  ['CZK',50.08,14.44],['CZK',49.20,16.61],['CZK',49.84,18.29],
+  ['CHF',46.95,7.45],['CHF',47.38,8.54],['CHF',46.20,6.14],['CHF',46.00,8.95],
+  ['GBP',51.51,-0.13],['GBP',53.48,-2.24],['GBP',55.95,-3.19],['GBP',52.49,-1.89],['GBP',54.60,-5.93],['GBP',51.48,-3.18],['GBP',57.15,-2.09],
+  ['TRY',41.01,28.98],['TRY',39.93,32.86],['TRY',38.42,27.14],['TRY',36.90,30.70],
+  ['USD',40.71,-74.01],['USD',34.05,-118.24],['USD',41.88,-87.63],['USD',29.76,-95.37],['USD',25.76,-80.19],['USD',47.61,-122.33],['USD',39.74,-104.99],['USD',33.45,-112.07],['USD',38.91,-77.04],['USD',42.36,-71.06],['USD',37.77,-122.42],['USD',61.22,-149.90],['USD',21.31,-157.86],
+  ['CAD',43.65,-79.38],['CAD',45.50,-73.57],['CAD',49.28,-123.12],['CAD',51.05,-114.07],
+  ['AUD',-33.87,151.21],['AUD',-37.81,144.96],['AUD',-27.47,153.03],['AUD',-31.95,115.86],
+  ['JPY',35.68,139.69],['JPY',34.69,135.50],['JPY',43.06,141.35],
+];
+function currencyAt(lat, lon){
+  let best = null, bd = Infinity;
+  const k = Math.cos(lat * Math.PI / 180);
+  for(const [c, a, b] of CITIES){ const dy = a - lat, dx = (b - lon) * k, d = dx*dx + dy*dy; if(d < bd){ bd = d; best = c; } }
+  // about 450 km; farther away we do not guess
+  return bd < 16 ? best : null;
+}
+function detectCurrency(){
+  if(!D.settings.curAuto || !navigator.geolocation) return;
+  try {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const c = currencyAt(pos.coords.latitude, pos.coords.longitude);
+      if(!c || !D.settings.curAuto || c === D.settings.localCur || !(c in FALLBACK)) return;
+      D.settings.localCur = c; save(); render(); toast(t('cur_from_loc', {cur:c}));
+    }, () => {}, {enableHighAccuracy:false, timeout:15000, maximumAge:6 * 3600e3});
+  } catch(e){}
+}
+
+/* ================= SQLite reader ================= */
+// Small dependency-free reader for SQLite database files: walks table B-trees (interior 0x05,
+// leaf 0x0d) from sqlite_master, decodes records and follows overflow pages. Read-only.
+function SQLiteFile(buf){
+  const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const magic = 'SQLite format 3\0';
+  for(let i = 0; i < 16; i++) if(u8[i] !== magic.charCodeAt(i)) throw new Error('not SQLite');
+  let pageSize = dv.getUint16(16); if(pageSize === 1) pageSize = 65536;
+  const usable = pageSize - u8[20];
+  const enc = dv.getUint32(56) || 1;
+  const pageCount = Math.floor(u8.length / pageSize);
+  const dec8 = new TextDecoder('utf-8'), dec16le = new TextDecoder('utf-16le');
+  const decText = b => enc === 1 ? dec8.decode(b) : enc === 2 ? dec16le.decode(b) : dec16le.decode(swap16(b));
+  function swap16(b){ const c = new Uint8Array(b.length); for(let i = 0; i + 1 < b.length; i += 2){ c[i] = b[i+1]; c[i+1] = b[i]; } return c; }
+  function varint(p){
+    let v = 0;
+    for(let i = 0; i < 8; i++){ const b = u8[p + i]; v = v * 128 + (b & 0x7f); if(!(b & 0x80)) return [v, i + 1]; }
+    return [v * 256 + u8[p + 8], 9];
+  }
+  const pageOff = n => (n - 1) * pageSize;
+  function payload(p, total){
+    // p: start of payload inside the page; total: payload size in bytes
+    const X = usable - 35;
+    if(total <= X) return u8.subarray(p, p + total);
+    const M = Math.floor((usable - 12) * 32 / 255) - 23;
+    const K = M + ((total - M) % (usable - 4));
+    const local = K <= X ? K : M;
+    const out = new Uint8Array(total);
+    out.set(u8.subarray(p, p + local), 0);
+    let got = local, next = dv.getUint32(p + local), guard = 0;
+    while(got < total && next && guard++ < pageCount + 1){
+      const o = pageOff(next), n = Math.min(usable - 4, total - got);
+      out.set(u8.subarray(o + 4, o + 4 + n), got); got += n; next = dv.getUint32(o);
+    }
+    if(got < total) throw new Error('broken overflow chain');
+    return out;
+  }
+  function record(b){
+    const [hs, n0] = (() => { let v = 0; for(let i = 0; i < 9; i++){ const c = b[i]; v = v * 128 + (c & 0x7f); if(!(c & 0x80)) return [v, i + 1]; } return [v, 9]; })();
+    const types = []; let p = n0;
+    while(p < hs){ let v = 0, i = 0; for(; i < 9; i++){ const c = b[p + i]; if(i === 8){ v = v * 256 + c; i++; break; } v = v * 128 + (c & 0x7f); if(!(c & 0x80)){ i++; break; } } types.push(v); p += i; }
+    const bv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+    const vals = []; p = hs;
+    for(const st of types){
+      if(st === 0){ vals.push(null); }
+      else if(st >= 1 && st <= 6){
+        const len = [0,1,2,3,4,6,8][st]; let v = 0n;
+        for(let i = 0; i < len; i++) v = (v << 8n) | BigInt(b[p + i]);
+        if(b[p] & 0x80) v -= 1n << BigInt(len * 8);
+        vals.push(Number(v)); p += len;
+      }
+      else if(st === 7){ vals.push(bv.getFloat64(p)); p += 8; }
+      else if(st === 8){ vals.push(0); } else if(st === 9){ vals.push(1); }
+      else if(st >= 12){ const len = (st - (st % 2 ? 13 : 12)) / 2; const s = b.subarray(p, p + len); vals.push(st % 2 ? decText(s) : s.slice()); p += len; }
+      else throw new Error('bad serial type');
+    }
+    return vals;
+  }
+  // Calls fn(rowid, values) for every row of the table whose B-tree starts at `root`.
+  function walk(root, fn){
+    const stack = [root], seen = new Set();
+    while(stack.length){
+      const n = stack.pop();
+      if(!n || n > pageCount || seen.has(n)) continue; seen.add(n);
+      const base = pageOff(n), h = n === 1 ? base + 100 : base;
+      const type = u8[h], cells = dv.getUint16(h + 3);
+      if(type === 0x0d){
+        for(let i = 0; i < cells; i++){
+          let p = base + dv.getUint16(h + 8 + i * 2);
+          const [len, a] = varint(p); p += a;
+          const [rowid, b] = varint(p); p += b;
+          fn(rowid, record(payload(p, len)));
+        }
+      } else if(type === 0x05){
+        const kids = [];
+        for(let i = 0; i < cells; i++) kids.push(dv.getUint32(base + dv.getUint16(h + 12 + i * 2)));
+        kids.push(dv.getUint32(h + 8));
+        for(let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
+      } else throw new Error('unexpected page type ' + type);
+    }
+  }
+  const master = [];
+  walk(1, (rowid, v) => master.push({type:v[0], name:v[1], tbl:v[2], root:v[3], sql:v[4]}));
+  // Column names from CREATE TABLE; an INTEGER PRIMARY KEY column is the rowid (stored as NULL).
+  function columns(sql){
+    const body = sql.slice(sql.indexOf('(') + 1, sql.lastIndexOf(')'));
+    const parts = []; let depth = 0, cur = '';
+    for(const ch of body){ if(ch === '(') depth++; if(ch === ')') depth--; if(ch === ',' && !depth){ parts.push(cur); cur = ''; } else cur += ch; }
+    parts.push(cur);
+    const cols = [];
+    for(const raw of parts){
+      const def = raw.trim(); if(!def) continue;
+      if(/^(primary\s+key|unique|check|foreign\s+key|constraint)\b/i.test(def)) continue;
+      const m = /^(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|(\S+))\s*(.*)$/s.exec(def);
+      const name = m[1] || m[2] || m[3] || m[4];
+      cols.push({name, rowid:/^integer\s+primary\s+key\b/i.test(m[5].trim())});
+    }
+    return cols;
+  }
+  return {
+    tables: master.filter(m => m.type === 'table').map(m => m.name),
+    has: name => master.some(m => m.type === 'table' && m.name.toLowerCase() === name.toLowerCase()),
+    rows(name){
+      const m = master.find(x => x.type === 'table' && x.name.toLowerCase() === name.toLowerCase());
+      if(!m) return [];
+      const cols = columns(m.sql || ''), out = [];
+      walk(m.root, (rowid, v) => {
+        const o = {};
+        cols.forEach((c, i) => { o[c.name] = c.rowid && v[i] == null ? rowid : (i < v.length ? v[i] : null); });
+        out.push(o);
+      });
+      return out;
+    },
+  };
+}
+
+/* ================= Debt Manager import ================= */
+// Local amount written in a repayment note on a foreign-currency debt, e.g. "16 000 nok vraćeno",
+// "10500", "3000 kr", "130000 кр", "1065 круна". A number counts only when a krone word follows it,
+// or when the note is just the number.
+const KR_WORD = '(?:nok|kr\\.?|kroner|krone|kron|кр\\.?|круна|круне|крун[аеи]?|kruna|krune)';
+function noteLocal(note){
+  const s = String(note || '').trim();
+  if(!s) return null;
+  const num = '(\\d{1,3}(?:[ \\u00a0.]\\d{3})+|\\d+)(?:[.,](\\d{1,2}))?';
+  const only = new RegExp('^' + num + '$').exec(s);
+  const m = only || new RegExp('(?:^|[^\\d])' + num + '\\s*' + KR_WORD + '(?![\\p{L}])', 'iu').exec(s);
+  if(!m) return null;
+  const v = parseFloat(m[1].replace(/[  .]/g, '') + (m[2] ? '.' + m[2] : ''));
+  return v > 0 ? v : null;
+}
+function plausibleRate(cur, rate){
+  if(cur === 'EUR') return rate >= 5 && rate <= 20;          // NOK per EUR
+  const ref = cross(cur, 'NOK'); if(!ref) return false;
+  return rate >= ref * 0.45 && rate <= ref * 1.75;
+}
+const DM_SYSTEM_NOTE = /^debt closed \(system generated\)$/i;
+const msOf = v => { const n = +String(v == null ? '' : v).trim(); return isFinite(n) && n > 0 ? n : 0; };
+const numOf = v => { const n = parseFloat(String(v == null ? '' : v).trim().replace(',', '.')); return isFinite(n) ? n : 0; };
+
+// Converts a Debt Manager database (ArrayBuffer) into DebtFlow data + an import report.
+function importDebtManager(buf){
+  const db = SQLiteFile(buf);
+  if(!db.has('debts') || !db.has('payments') || !db.has('contacts')) throw new Error('debts/payments/contacts missing');
+  const contacts = db.rows('contacts'), debts = db.rows('debts'), payments = db.rows('payments');
+  const pivot = db.has('namePivot') ? db.rows('namePivot') : null;
+  const out = blank();
+  out.settings = Object.assign({}, D.settings);
+  const rep = {people:0, open:0, closed:0, entries:0, zero:0, orphans:[], inferred:0, noContact:0, skippedContacts:[], verify:null};
+
+  const byContact = {};
+  for(const c of contacts){ if(c.contact_uuid) byContact[c.contact_uuid] = c; }
+  const personOf = {};   // contact_uuid -> person id
+  const debtOf = {};     // debts.uuid -> debt object
+  const dmDebt = {};     // our debt id -> DM row
+  const getPerson = cu => {
+    if(personOf[cu]) return personOf[cu];
+    const c = byContact[cu];
+    const p = {id:uid(), name:String((c && c.name) || '?').trim() || '?', created:Date.now()};
+    out.people.push(p); personOf[cu] = p.id; rep.people++;
+    if(!c) rep.noContact++;
+    return p.id;
+  };
+  const sorted = debts.slice().sort((a, b) => msOf(a.date_incurred) - msOf(b.date_incurred));
+  for(const r of sorted){
+    if(!r.uuid) continue;
+    const d = {id:uid(), personId:getPerson(r.contact_uuid || ''), dir:String(r.debtor).trim() === '1' ? 'to' : 'by',
+      currency:String(r.currency || 'EUR').trim().toUpperCase() || 'EUR', title:String(r.description || r.name || '').trim(),
+      opened:msOf(r.date_incurred), closed:null, plan:null};
+    out.debts.push(d); debtOf[r.uuid] = d; dmDebt[d.id] = r;
+    const owed = numOf(r.amount_owed);
+    if(owed !== 0) out.entries.push({id:uid(), debtId:d.id, date:d.opened, amount:owed, note:'', kind:'tx'});
+  }
+  for(const p of payments){
+    const d = debtOf[p.debt_id_fk];
+    const amount = numOf(p.amount), date = msOf(p.payment_date), note = String(p.description || '').trim();
+    if(!d){ rep.orphans.push({date, amount, note}); continue; }
+    if(amount === 0){ rep.zero++; continue; }
+    const type = String(p.type == null ? '0' : p.type).trim();
+    const e = {id:uid(), debtId:d.id, date, amount, note:DM_SYSTEM_NOTE.test(note) ? '' : note, kind:type === '1' || type === '2' ? 'close' : 'tx'};
+    // repayment on a non-NOK debt with the kroner amount written in the note
+    if(e.kind === 'tx' && amount < 0 && d.currency !== 'NOK'){
+      const v = noteLocal(note);
+      if(v){ const rate = v / Math.abs(amount); if(plausibleRate(d.currency, rate)){ e.loc = {amt:v, cur:'NOK', rate:Math.round(rate * 1e4) / 1e4, inferred:true}; rep.inferred++; } }
+    }
+    out.entries.push(e);
+  }
+  // closed debts: Debt Manager's close date, else the last entry
+  for(const d of out.debts){
+    const r = dmDebt[d.id];
+    if(String(r.settled).trim() === '1'){
+      let last = 0; for(const e of out.entries) if(e.debtId === d.id && e.date > last) last = e.date;
+      d.closed = msOf(r.date_closed) || last || d.opened || Date.now(); rep.closed++;
+    } else rep.open++;
+    if(!d.opened){ let first = Infinity; for(const e of out.entries) if(e.debtId === d.id && e.date < first) first = e.date; d.opened = isFinite(first) ? first : Date.now(); }
+  }
+  // drop empty closed debts (no entries) – nothing to show
+  const used = new Set(out.entries.map(e => e.debtId));
+  out.debts = out.debts.filter(d => used.has(d.id) || !d.closed);
+  const live = new Set(out.debts.map(d => d.personId));
+  out.people = out.people.filter(p => live.has(p.id));
+  rep.people = out.people.length;
+  rep.entries = out.entries.length;
+  for(const c of contacts) if(!personOf[c.contact_uuid]) rep.skippedContacts.push(String(c.name || '?'));
+
+  // Acceptance check: per (person, currency, direction) open balances must equal namePivot.
+  if(pivot){
+    const mine = {}, theirs = {};
+    const bal = {}; for(const e of out.entries) bal[e.debtId] = (bal[e.debtId] || 0) + e.amount;
+    for(const d of out.debts){
+      if(d.closed) continue;
+      const r = dmDebt[d.id], k = (r.contact_uuid || '') + '|' + d.currency + '|' + d.dir;
+      mine[k] = (mine[k] || 0) + (bal[d.id] || 0);
+    }
+    for(const p of pivot){
+      const cu = p.contact_uuid_fk || '', cur = String(p.currency || '').trim().toUpperCase();
+      const toMe = numOf(p.amount_owed_to_me), byMe = numOf(p.amount_owed_by_me);
+      if(toMe) theirs[cu + '|' + cur + '|to'] = (theirs[cu + '|' + cur + '|to'] || 0) + toMe;
+      if(byMe) theirs[cu + '|' + cur + '|by'] = (theirs[cu + '|' + cur + '|by'] || 0) + byMe;
+    }
+    const diffs = [];
+    for(const k of new Set([...Object.keys(mine), ...Object.keys(theirs)])){
+      const a = round2(mine[k] || 0), b = round2(theirs[k] || 0);
+      if(Math.abs(a - b) > 0.005){
+        const [cu, cur, dir] = k.split('|');
+        diffs.push({name:(byContact[cu] && byContact[cu].name) || '?', cur, dir, a, b});
+      }
+    }
+    rep.verify = {ok:!diffs.length, diffs, groups:Object.keys(theirs).length};
+  }
+  return {data:out, rep};
+}
+
+/* ================= layers: pages, sheets, back button ================= */
+// Every page or sheet adds a history entry, so Android's back button closes the top one.
+const UI = {tab:'home', q:'', aq:'', aLimit:200, showSettled:false, showClosed:false};
+const layers = [];   // {type:'page'|'sheet', render(), onClose?}
+function pushLayer(l){ layers.push(l); try { history.pushState({df:layers.length}, ''); } catch(e){} drawLayers(); }
+// Closes the top layer; resolves once it is gone.
+let popWaiters = [];
+function popLayer(){
+  return new Promise(res => {
+    if(!layers.length) return res();
+    popWaiters.push(res);
+    const n = layers.length;
+    history.back();
+    // no popstate (history entry lost): close it directly
+    setTimeout(() => { if(layers.length === n && popWaiters.length) dropTop(); }, 450);
+  });
+}
+function dropTop(){
+  const l = layers.pop();
+  if(l && l.onClose) l.onClose();
+  drawLayers();
+  const w = popWaiters; popWaiters = []; w.forEach(f => f());
+}
+window.addEventListener('popstate', () => { if(layers.length) dropTop(); });
+function drawLayers(){
+  const ov = $('overlay');
+  // keep scroll position of an open page while re-rendering
+  const old = ov.querySelector('.page'); const scroll = old ? old.scrollTop : 0;
+  let html = '';
+  layers.forEach((l, i) => {
+    if(l.type === 'page') html += `<div class="page" data-layer="${i}"><div class="wrap">${l.render()}</div></div>`;
+    else html += `<div class="scrim" data-act="scrim"></div><div class="sheet" data-layer="${i}"><div class="grab"></div>${l.render()}</div>`;
+  });
+  ov.innerHTML = html;
+  const pg = ov.querySelector('.page'); if(pg && scroll) pg.scrollTop = scroll;
+  document.body.classList.toggle('locked', layers.length > 0);
+  const top = layers[layers.length - 1];
+  if(top && top.after) top.after();
+}
+function topLayer(){ return layers[layers.length - 1]; }
+function refresh(){ render(); drawLayers(); }
+
+/* ---------- small dialogs ---------- */
+function ask(text, okLabel, danger){
+  return new Promise(res => {
+    let answered = false;
+    pushLayer({type:'sheet', render:() => `<p style="font-size:15.5px;margin:6px 2px 16px">${esc(text)}</p>
+      <div class="btnrow"><button class="btn ghost" data-act="ask-no">${t('cancel')}</button><button class="btn ${danger ? 'danger' : ''}" data-act="ask-yes">${esc(okLabel || 'OK')}</button></div>`,
+      cancelValue:false, answer:v => { answered = true; popLayer().then(() => res(v)); }, onClose:() => { if(!answered) res(false); }});
+  });
+}
+function askText(title, value, opts){
+  opts = opts || {};
+  return new Promise(res => {
+    let answered = false;
+    pushLayer({type:'sheet', render:() => `<h3>${esc(title)}</h3>
+      <input class="inp" id="ask-input" value="${esc(value || '')}" placeholder="${esc(opts.ph || '')}" ${opts.mode ? `inputmode="${opts.mode}"` : ''} autocomplete="off">
+      ${opts.hint ? `<div class="hint">${esc(opts.hint)}</div>` : '<div style="height:12px"></div>'}
+      <div class="btnrow"><button class="btn ghost" data-act="ask-no">${t('cancel')}</button><button class="btn" data-act="ask-ok">${t('save')}</button></div>`,
+      after:() => { const i = $('ask-input'); if(i && document.activeElement !== i){ i.focus(); i.select(); } },
+      cancelValue:null, answer:v => { answered = true; popLayer().then(() => res(v)); }, onClose:() => { if(!answered) res(null); }});
+  });
+}
+let toastTimer = null;
+function toast(msg, undoFn){
+  const old = document.querySelector('.toast'); if(old) old.remove();
+  const el = document.createElement('div'); el.className = 'toast';
+  el.innerHTML = `<span>${esc(msg)}</span>` + (undoFn ? `<button>${t('undo')}</button>` : '');
+  if(undoFn) el.querySelector('button').onclick = () => { el.remove(); undoFn(); };
+  document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), undoFn ? 6000 : 2600);
+}
+// Snapshot for undo of anything destructive.
+function withUndo(msg, fn){
+  const snap = JSON.stringify(D);
+  fn(); save(); refresh();
+  toast(msg, () => { D = normalize(JSON.parse(snap)); save(); refresh(); });
+}
+
+/* ================= main views ================= */
+function render(){
+  document.documentElement.lang = lang;
+  $('nav').innerHTML = `
+    <button class="${UI.tab === 'home' ? 'on' : ''}" data-tab="home">${ICON.people}<span>${t('nav_people')}</span></button>
+    <button class="fab" data-act="new-entry" aria-label="${t('new_entry')}">${ICON.plus}</button>
+    <button class="${UI.tab === 'activity' ? 'on' : ''}" data-tab="activity">${ICON.activity}<span>${t('nav_activity')}</span></button>`;
+  const head = `<div class="top"><div class="brand">${ICON.logo}<span>DebtFlow</span></div>
+    <button class="iconbtn" data-act="settings" aria-label="${t('nav_settings')}">${ICON.settings}</button></div>`;
+  $('view').innerHTML = head + (UI.tab === 'activity' ? viewActivity() : viewHome());
+}
+
+function totals(){
+  const local = D.settings.localCur, byCur = {};
+  let toMe = 0, iOwe = 0, converted = false;
+  for(const p of D.people){
+    const net = personNet(p.id);
+    for(const c in net){
+      const v = net[c]; if(!v) continue;
+      byCur[c] = round2((byCur[c] || 0) + v);
+      const x = convert(v, c, local); if(c !== local) converted = true;
+      if(x > 0) toMe += x; else iOwe -= x;
+    }
+  }
+  return {toMe, iOwe, net:toMe - iOwe, byCur, converted};
+}
+function netLines(net, cls){
+  const cs = Object.keys(net).filter(c => net[c]);
+  if(!cs.length) return `<span class="muted">${t('settled')}</span>`;
+  return cs.map(c => `<div class="${net[c] > 0 ? 'to' : 'by'} ${cls || ''}">${fmtMoney(net[c], c, {abs:true})}</div>`).join('');
+}
+function personSortKey(p){
+  const net = personNet(p.id); let s = 0;
+  for(const c in net) s += Math.abs(convert(net[c], c, D.settings.localCur));
+  return s;
+}
+function viewHome(){
+  const local = D.settings.localCur;
+  if(!D.people.length) return `<div class="card empty"><b>${t('no_people')}</b>${t('no_people_hint')}
+    <div style="margin-top:14px" class="btnrow"><button class="btn" data-act="new-entry">${ICON.plus}${t('new_entry')}</button></div>
+    <div style="margin-top:8px"><button class="btn ghost" data-act="import-dm">${t('import_dm')}</button></div></div>`;
+  const T = totals();
+  const hero = `<div class="hero">
+    <div class="lbl">${t('net')}</div>
+    <div class="big num">${T.net > 0.004 ? '+' : ''}${fmtMoney(round2(T.net), local, {dec:0})}</div>
+    <div class="split">
+      <div class="box"><span>${t('owed_to_me')}</span><b class="num">${fmtMoney(T.toMe, local, {dec:0})}</b></div>
+      <div class="box"><span>${t('i_owe')}</span><b class="num">${fmtMoney(T.iOwe, local, {dec:0})}</b></div>
+    </div>
+    ${Object.keys(T.byCur).length > 1 || T.converted ? `<div class="cur">${Object.keys(T.byCur).map(c => `<span class="num">${T.byCur[c] > 0 ? '+' : '−'}${fmtMoney(T.byCur[c], c, {abs:true})}</span>`).join('')}</div>
+    <div class="note">${t('net_hint', {cur:local})}</div>` : ''}
+  </div>`;
+  const s = D.settings, ago = s.lastBackup ? Math.floor((Date.now() - s.lastBackup) / DAY) : null;
+  const remind = (ago === null || ago >= 14) && D.entries.length ? `<div class="remind"><span style="font-size:22px">💾</span><div>${ago === null ? t('backup_never') : t('backup_old', {n:ago})}</div><button class="btn sm" data-act="export">${t('save')}</button></div>` : '';
+  const q = UI.q.trim().toLowerCase();
+  const match = p => !q || p.name.toLowerCase().includes(q);
+  const active = [], done = [];
+  for(const p of D.people){ if(!match(p)) continue; const net = personNet(p.id); (Object.values(net).some(v => v) ? active : done).push(p); }
+  active.sort((a, b) => personSortKey(b) - personSortKey(a));
+  done.sort((a, b) => lastActivity(b.id) - lastActivity(a.id));
+  const row = p => {
+    const last = lastActivity(p.id), net = personNet(p.id);
+    const plans = openDebts(p.id).filter(d => d.plan).map(d => planInfo(d)).filter(Boolean);
+    const meta = [last ? fmtDate(last) : '', ...plans.map(pi => pi.diff < -0.5 ? t('plan_behind', {v:fmtMoney(-pi.diff, pi.cur, {dec:0})}) : t('plan_on'))].filter(Boolean).join(' · ');
+    return `<button class="row" data-person="${p.id}">${avatar(p)}<div class="main"><div class="name">${esc(p.name)}</div><div class="meta">${esc(meta)}</div></div>
+      <div class="amt">${netLines(net)}${Object.keys(net).some(c => net[c]) ? `<small>${Object.values(net).some(v => v > 0) && Object.values(net).some(v => v < 0) ? '' : Object.values(net).some(v => v > 0) ? t('owes_you') : t('you_owe')}</small>` : ''}</div></button>`;
+  };
+  return hero + remind +
+    `<input class="search" id="q" placeholder="${t('search_people')}" value="${esc(UI.q)}" autocomplete="off">` +
+    (active.length ? `<div class="list">${active.map(row).join('')}</div>` : '') +
+    (done.length ? `<button class="fold" data-act="toggle-settled"><span>${t('settled_people')} (${done.length})</span><span>${UI.showSettled || q ? '▴' : '▾'}</span></button>
+      ${UI.showSettled || q ? `<div class="list">${done.map(row).join('')}</div>` : ''}` : '');
+}
+
+/* ---------- entry rows ---------- */
+function entryRow(e, opt){
+  const d = debt(e.debtId); if(!d) return '';
+  const p = person(d.personId);
+  const gave = gaveFlow(d, e.amount), close = e.kind === 'close';
+  const title = opt.showPerson ? (p ? p.name : '?') : (e.note || (close ? t('closed_entry') : d.title || (gave ? t('given') : t('received'))));
+  const sub = [fmtDate(e.date)];
+  if(opt.showPerson) sub.push(e.note || (close ? t('closed_entry') : d.title || ''));
+  else if(opt.multi) sub.push(d.currency + (d.title && e.note ? ' · ' + d.title : ''));
+  const loc = e.loc ? `<small class="loc">${e.loc.inferred ? '~' : '≈'}${fmtMoney(e.loc.amt, e.loc.cur, {dec:0})}</small>` : '';
+  const balTxt = opt.bal != null ? `<small>${t('balance_after', {v:fmtMoney(signed(d, opt.bal), d.currency, {abs:true})})}</small>` : '';
+  return `<button class="ent" data-entry="${e.id}">
+    <span class="ico ${close ? 'close' : gave ? 'gave' : 'got'}">${close ? ICON.check : gave ? ICON.out : ICON.in}</span>
+    <div class="main"><div class="t">${esc(title)}</div><div class="s">${esc(sub.filter(Boolean).join(' · '))}</div></div>
+    <div class="a"><span class="${close ? 'muted' : gave ? '' : 'to'}">${gave ? '−' : '+'}${fmtMoney(e.amount, d.currency, {abs:true})}</span>${loc}${opt.bal != null && !loc ? balTxt : ''}</div>
+  </button>`;
+}
+function groupByMonth(list, fn){
+  let html = '', cur = '';
+  for(const e of list){
+    const k = isoDate(e.date).slice(0, 7);
+    if(k !== cur){ cur = k; html += `<div class="mon"><span>${esc(fmtMonth(e.date))}</span></div>`; }
+    html += fn(e);
+  }
+  return html;
+}
+function viewActivity(){
+  const q = UI.aq.trim().toLowerCase();
+  let list = D.entries.slice().sort((a, b) => b.date - a.date);
+  if(q) list = list.filter(e => {
+    const d = debt(e.debtId), p = d && person(d.personId);
+    return (e.note + ' ' + (p ? p.name : '') + ' ' + (d ? d.title + ' ' + d.currency : '') + ' ' + Math.abs(e.amount) + ' ' + fmtNum(Math.abs(e.amount))).toLowerCase().includes(q);
+  });
+  const shown = list.slice(0, UI.aLimit);
+  return `<input class="search" id="aq" placeholder="${t('search_all')}" value="${esc(UI.aq)}" autocomplete="off">
+    ${shown.length ? `<div class="list">${groupByMonth(shown, e => entryRow(e, {showPerson:true}))}</div>` : `<div class="card empty">${t('no_entries')}</div>`}
+    ${list.length > shown.length ? `<button class="btn ghost" data-act="more-activity">${t('more')} (${list.length - shown.length})</button>` : ''}`;
+}
+
+/* ================= person page ================= */
+function openPerson(id){ pushLayer({type:'page', person:id, render:() => viewPerson(id)}); }
+function planInfo(d){
+  if(!d.plan) return null;
+  const pl = d.plan, now = new Date(), s = new Date(pl.start);
+  let due = (now.getFullYear() - s.getFullYear()) * 12 + now.getMonth() - s.getMonth() + (now.getDate() >= s.getDate() ? 1 : 0);
+  due = Math.max(0, due);
+  const expected = due * pl.amt;
+  let paid = 0;
+  for(const e of D.entries){
+    if(e.debtId !== d.id || e.kind !== 'tx' || e.amount >= 0 || e.date < startOfDay(pl.start)) continue;
+    if(pl.cur === d.currency) paid += -e.amount;
+    else if(e.loc && e.loc.cur === pl.cur) paid += e.loc.amt;
+    else paid += -e.amount * cross(d.currency, pl.cur, e.date);
+  }
+  const bal = Math.max(0, balance(d.id));
+  const remaining = bal * cross(d.currency, pl.cur);
+  const months = remaining > 0 ? Math.ceil(remaining / pl.amt - 1e-9) : 0;
+  const end = new Date(now.getFullYear(), now.getMonth() + months, 1);
+  return {cur:pl.cur, amt:pl.amt, expected, paid, diff:paid - expected, remaining, months, end:end.getTime(), progress:paid + remaining > 0 ? paid / (paid + remaining) : 1};
+}
+function viewPerson(id){
+  const p = person(id);
+  if(!p) return `<div class="top"><button class="iconbtn" data-act="back">${ICON.back}</button></div>`;
+  const all = D.debts.filter(d => d.personId === id);
+  const open = all.filter(d => !d.closed).sort((a, b) => b.opened - a.opened);
+  const closed = all.filter(d => d.closed).sort((a, b) => b.closed - a.closed);
+  const net = personNet(id);
+  const head = `<div class="top"><button class="iconbtn" data-act="back" aria-label="back">${ICON.back}</button>
+    <div style="display:flex;gap:4px"><button class="iconbtn" data-act="share-person" data-id="${id}">${t('share')}</button><button class="iconbtn" data-act="person-menu" data-id="${id}" aria-label="menu">${ICON.more}</button></div></div>
+    <div class="pagehead">${avatar(p, 'lg')}<div><div class="t">${esc(p.name)}</div><div class="s">${Object.keys(net).some(c => net[c]) ? Object.keys(net).filter(c => net[c]).map(c => `<span class="${net[c] > 0 ? 'to' : 'by'}">${net[c] > 0 ? t('owes_you') : t('you_owe')} ${fmtMoney(net[c], c, {abs:true})}</span>`).join(' · ') : t('settled')}</div></div></div>`;
+  const acct = d => {
+    const bal = balance(d.id), s = signed(d, bal), pi = planInfo(d);
+    return `<div class="acct ${s >= 0 ? 'to' : 'by'}">
+      <div class="hd"><div><div class="dir ${s >= 0 ? 'to' : 'by'}">${s > 0 ? t('owes_you') : s < 0 ? t('you_owe') : t('settled')}</div>
+        <div class="bal">${fmtMoney(s, d.currency, {abs:true})}</div>
+        <div class="sub">${esc([d.title, t('since', {d:fmtDate(d.opened, true)}), d.currency !== D.settings.localCur && bal ? '≈ ' + fmtMoney(convert(Math.abs(bal), d.currency, D.settings.localCur), D.settings.localCur, {dec:0}) : ''].filter(Boolean).join(' · '))}</div></div></div>
+      ${pi ? `<div class="planbox"><div style="display:flex;justify-content:space-between;gap:8px"><span>${t('plan')}: ${t('plan_month', {v:fmtMoney(pi.amt, pi.cur, {dec:0})})}</span>
+          <span class="st ${pi.diff < -0.5 ? 'late' : 'ok'}">${pi.diff < -0.5 ? t('plan_behind', {v:fmtMoney(-pi.diff, pi.cur, {dec:0})}) : pi.diff > 0.5 ? t('plan_ahead', {v:fmtMoney(pi.diff, pi.cur, {dec:0})}) : t('plan_on')}</span></div>
+        <div class="bar"><span style="width:${Math.min(100, Math.round(pi.progress * 100))}%"></span></div>
+        <div class="muted small">${t('plan_paid', {a:fmtMoney(pi.paid, pi.cur, {dec:0}), b:fmtMoney(pi.expected, pi.cur, {dec:0})})}${pi.months ? '<br>' + t('plan_left', {n:pi.months, d:fmtMonth(pi.end, true)}) : ''}</div></div>` : ''}
+      <div class="acts"><button class="btn sm" data-act="entry-for" data-id="${d.id}">${ICON.plus}${t('add_entry')}</button>
+        <button class="btn sm ghost" data-act="plan" data-id="${d.id}">${t('plan')}</button>
+        <button class="btn sm ghost" data-act="close-debt" data-id="${d.id}">${t('close_debt')}</button></div>
+    </div>`;
+  };
+  // running balance per debt, then newest first
+  const ids = new Set(all.map(d => d.id)), bals = {}, after = {};
+  const chron = D.entries.filter(e => ids.has(e.debtId)).sort((a, b) => a.date - b.date);
+  for(const e of chron){ bals[e.debtId] = round2((bals[e.debtId] || 0) + e.amount); after[e.id] = bals[e.debtId]; }
+  const multi = new Set(all.map(d => d.currency)).size > 1;
+  const hist = chron.slice().reverse();
+  return head +
+    (open.length ? open.map(acct).join('') : `<div class="card empty">${t('settled')}<div style="margin-top:12px"><button class="btn" data-act="entry-person" data-id="${id}">${ICON.plus}${t('add_entry')}</button></div></div>`) +
+    (open.length ? `<button class="btn ghost" data-act="entry-person" data-id="${id}" style="margin-bottom:6px">${ICON.plus}${t('new_entry')}</button>` : '') +
+    `<h2>${t('history')}</h2>` +
+    (hist.length ? `<div class="list">${groupByMonth(hist, e => entryRow(e, {multi, bal:after[e.id]}))}</div>` : `<div class="card empty">${t('no_entries')}</div>`) +
+    (closed.length ? `<button class="fold" data-act="toggle-closed"><span>${t('closed_accounts', {n:closed.length})}</span><span>${UI.showClosed ? '▴' : '▾'}</span></button>
+      ${UI.showClosed ? `<div class="list">${closed.map(d => `<button class="row" data-act="closed-debt" data-id="${d.id}"><div class="main"><div class="name">${esc(d.title || d.currency)}</div>
+        <div class="meta">${esc(fmtDate(d.opened, true) + ' – ' + fmtDate(d.closed, true))}</div></div><div class="amt"><span class="${d.dir === 'to' ? 'to' : 'by'}">${fmtMoney(Math.max(...entriesOf(d.id).map(e => e.amount), 0), d.currency, {abs:true})}</span><small>${d.dir === 'to' ? t('owes_you') : t('you_owe')}</small></div></button>`).join('')}</div>` : ''}` : '');
+}
+async function personMenu(id){
+  const p = person(id); if(!p) return;
+  pushLayer({type:'sheet', render:() => `<h3>${esc(p.name)}</h3>
+    <div class="list"><button class="set" data-act="pm-rename" data-id="${id}">${t('rename')}<span class="v">›</span></button>
+    <button class="set" data-act="pm-merge" data-id="${id}">${t('merge')}<span class="v">›</span></button>
+    <button class="set" data-act="pm-delete" data-id="${id}"><span class="by">${t('del_person')}</span><span class="v">›</span></button></div>`});
+}
+async function renamePerson(id){
+  const p = person(id); await popLayer();
+  const v = await askText(t('rename'), p.name);
+  if(v && v.trim()){ p.name = v.trim(); save(); refresh(); }
+}
+async function mergePerson(id){
+  const p = person(id); await popLayer();
+  const others = D.people.filter(x => x.id !== id).sort((a, b) => a.name.localeCompare(b.name));
+  pushLayer({type:'sheet', render:() => `<h3>${t('merge')}</h3><div class="hint">${esc(t('merge_hint', {name:p.name}))}</div>
+    <div class="list">${others.map(o => `<button class="row" data-act="pm-merge-to" data-from="${id}" data-id="${o.id}">${avatar(o)}<div class="main"><div class="name">${esc(o.name)}</div></div></button>`).join('')}</div>`});
+}
+async function deletePerson(id){
+  const p = person(id); await popLayer();
+  if(!await ask(t('del_person_q', {name:p.name}), t('del'), true)) return;
+  await popLayer();   // leave the person page
+  withUndo(t('deleted'), () => {
+    const ds = new Set(D.debts.filter(d => d.personId === id).map(d => d.id));
+    D.entries = D.entries.filter(e => !ds.has(e.debtId));
+    D.debts = D.debts.filter(d => d.personId !== id);
+    D.people = D.people.filter(x => x.id !== id);
+  });
+}
+async function closeDebt(id){
+  const d = debt(id), bal = balance(id);
+  const ok = await ask(bal ? t('close_q', {v:fmtMoney(bal, d.currency, {abs:true})}) : t('close_zero_q'), t('close_debt'), !!bal);
+  if(!ok) return;
+  withUndo(t('saved'), () => {
+    if(bal) D.entries.push({id:uid(), debtId:id, date:Date.now(), amount:-bal, note:'', kind:'close'});
+    d.closed = Date.now();
+  });
+}
+async function closedDebtMenu(id){
+  const d = debt(id); if(!d) return;
+  if(!await ask((d.title ? d.title + ' · ' : '') + d.currency + ' · ' + t('closed_on', {d:fmtDate(d.closed, true)}), t('reopen'))) return;
+  withUndo(t('saved'), () => { d.closed = null; });
+}
+
+/* ---------- plan ---------- */
+let PL = null;
+function openPlan(id){
+  const d = debt(id);
+  PL = {id, amt:d.plan ? fmtInput(d.plan.amt) : '', cur:d.plan ? d.plan.cur : (d.currency !== D.settings.localCur ? D.settings.localCur : d.currency), start:isoDate(d.plan ? d.plan.start : Date.now())};
+  pushLayer({type:'sheet', render:renderPlan});
+}
+function renderPlan(){
+  const d = debt(PL.id), curs = [...new Set([d.currency, D.settings.localCur])];
+  return `<h3>${t('plan_title')}</h3>
+    <div class="hint" style="margin-top:-6px">${t('plan_hint')}</div>
+    <label class="f"><span>${t('plan_amount')}</span><input class="inp" id="pl-amt" inputmode="decimal" value="${esc(PL.amt)}" autocomplete="off"></label>
+    <div class="chips">${curs.map(c => `<button class="chip ${PL.cur === c ? 'on' : ''}" data-act="pl-cur" data-cur="${c}">${c}</button>`).join('')}</div>
+    <label class="f"><span>${t('plan_start')}</span><input class="inp" id="pl-start" type="date" value="${esc(PL.start)}"></label>
+    <button class="btn" data-act="pl-save">${t('save')}</button>
+    ${d.plan ? `<div style="height:8px"></div><button class="btn danger" data-act="pl-remove">${t('plan_remove')}</button>` : ''}`;
+}
+
+/* ---------- share ---------- */
+function statement(id){
+  const p = person(id), net = personNet(id);
+  const lines = [t('st_title', {name:p.name, d:fmtDate(Date.now(), true)})];
+  for(const c in net){ if(!net[c]) continue; lines.push(net[c] > 0 ? t('st_owes', {v:fmtMoney(net[c], c, {abs:true})}) : t('st_iowe', {v:fmtMoney(net[c], c, {abs:true})})); }
+  if(!Object.values(net).some(v => v)) lines.push(t('settled'));
+  const ids = new Set(D.debts.filter(d => d.personId === id).map(d => d.id));
+  const last = D.entries.filter(e => ids.has(e.debtId) && e.kind === 'tx').sort((a, b) => b.date - a.date).slice(0, 5);
+  if(last.length){
+    lines.push('', t('st_last'));
+    for(const e of last){
+      const d = debt(e.debtId);
+      lines.push('• ' + fmtDate(e.date, true) + '  ' + (gaveFlow(d, e.amount) ? '→ ' : '← ') + fmtMoney(e.amount, d.currency, {abs:true}) +
+        (e.loc ? ' (' + fmtMoney(e.loc.amt, e.loc.cur, {dec:0}) + ')' : '') + (e.note ? '  ' + e.note : ''));
+    }
+  }
+  return lines.join('\n');
+}
+async function shareText(text){
+  const A = window.DebtFlowAndroid;
+  if(A && A.shareText){ A.shareText(text); return; }
+  try { if(navigator.share){ await navigator.share({text}); return; } } catch(e){ if(e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text); toast(t('copied')); } catch(e){ await askText(t('share'), text); }
+}
+
+/* ================= entry form ================= */
+// One question first: did money go from me to them ("I give") or come to me ("I get")?
+// Whether that raises or lowers the debt follows from the account, so the user never thinks about signs.
+let F = null;
+function accountFor(personId, cur){
+  return D.debts.filter(d => d.personId === personId && d.currency === cur && !d.closed).sort((a, b) => b.opened - a.opened)[0] || null;
+}
+function formAccount(){ return F.debtId ? debt(F.debtId) : F.personId ? accountFor(F.personId, F.cur) : null; }
+function defaultCur(personId){
+  if(personId){
+    const ds = openDebts(personId).sort((a, b) => lastEntryDate(b.id) - lastEntryDate(a.id));
+    if(ds.length) return ds[0].currency;
+  }
+  return D.settings.recentCurs[0] || D.settings.localCur;
+}
+function lastEntryDate(debtId){ let m = 0; for(const e of D.entries) if(e.debtId === debtId && e.date > m) m = e.date; return m; }
+function repayFlow(d){ return d && d.dir === 'by' ? 'give' : d ? 'get' : 'give'; }
+function openEntry(o){
+  o = o || {};
+  if(o.entryId){
+    const e = D.entries.find(x => x.id === o.entryId); if(!e) return;
+    const d = debt(e.debtId);
+    F = {editId:e.id, debtId:d.id, personId:d.personId, cur:d.currency, flow:gaveFlow(d, e.amount) ? 'give' : 'get',
+      amt:fmtInput(Math.abs(e.amount)), loc:e.loc ? fmtInput(e.loc.amt) : '', rate:e.loc && e.loc.rate ? fmtRate(e.loc.rate) : '',
+      rateTouched:!!(e.loc && e.loc.rate), amtAuto:false, date:e.date, note:e.note, close:true, pq:'', newName:'', kind:e.kind, err:''};
+  } else {
+    const d = o.debtId ? debt(o.debtId) : null;
+    const personId = d ? d.personId : o.personId || null;
+    const cur = d ? d.currency : defaultCur(personId);
+    F = {editId:null, debtId:d ? d.id : null, personId, cur, flow:'give', amt:'', loc:'', rate:'', rateTouched:false, amtAuto:false,
+      date:Date.now(), note:'', close:true, pq:'', newName:'', kind:'tx', err:''};
+    F.flow = repayFlow(formAccount());
+  }
+  if(!F.rate) F.rate = fmtRate(cross(F.cur, D.settings.localCur, F.date));
+  pushLayer({type:'sheet', form:true, render:renderEntry, after:() => {
+    if(!F.personId && !F.newName){ const q = $('pp-q'); if(q && document.activeElement !== q) q.focus(); }
+    else if(!F.amt && !F.editId && !F.focused){ F.focused = true; const a = $('f-amt'); if(a) a.focus(); }
+  }});
+  if(F.cur !== D.settings.localCur) loadRateForDate();
+}
+function peopleChips(){
+  const q = F.pq.trim().toLowerCase();
+  let list = D.people.slice().sort((a, b) => lastActivity(b.id) - lastActivity(a.id));
+  if(q) list = list.filter(p => p.name.toLowerCase().includes(q));
+  const exact = q && D.people.some(p => p.name.trim().toLowerCase() === q);
+  return list.slice(0, 14).map(p => {
+    const net = personNet(p.id), c = Object.keys(net).find(k => net[k]);
+    return `<button class="chip" data-act="f-person" data-id="${p.id}">${avatar(p)}${esc(p.name)}${c ? ` <small class="${net[c] > 0 ? 'to' : 'by'}">${fmtMoney(net[c], c, {abs:true, dec:0})}</small>` : ''}</button>`;
+  }).join('') + (q && !exact ? `<button class="chip on" data-act="f-newperson">${ICON.plus.replace('<svg', '<svg width="16" height="16"')}${esc(t('add_person_named', {name:F.pq.trim()}))}</button>` : '');
+}
+function renderEntry(){
+  const local = D.settings.localCur, acc = formAccount(), p = F.personId ? person(F.personId) : null, edit = !!F.editId;
+  let who;
+  if(p || F.newName){
+    const net = p ? personNet(p.id) : {};
+    const meta = p ? Object.keys(net).filter(c => net[c]).map(c => (net[c] > 0 ? t('owes_you') : t('you_owe')) + ' ' + fmtMoney(net[c], c, {abs:true})).join(' · ') || t('settled') : t('new_person');
+    who = `<button class="who" ${edit ? 'disabled' : 'data-act="f-change-person"'}>${avatar(p || {name:F.newName})}<div class="main"><div class="name">${esc(p ? p.name : F.newName)}</div><div class="meta">${esc(meta)}</div></div>${edit ? '' : `<span class="muted small">${t('change')}</span>`}</button>`;
+  } else {
+    who = `<label class="f"><span>${t('pick_person')}</span><input class="inp" id="pp-q" placeholder="${t('type_name')}" value="${esc(F.pq)}" autocomplete="off"></label><div class="chips" id="pp-list">${peopleChips()}</div>`;
+  }
+  // currency chips: this person's open accounts first, then the main ones
+  const accCurs = p ? openDebts(p.id).map(d => d.currency) : [];
+  const curs = [...new Set([...accCurs, local, ...MAIN_CURS, ...D.settings.recentCurs, F.cur])].slice(0, 8);
+  const curChips = edit ? '' : `<div class="chips">${curs.map(c => `<button class="chip ${F.cur === c ? 'on' : ''}" data-act="f-cur" data-cur="${c}">${c}${accCurs.includes(c) ? ' <small>●</small>' : ''}</button>`).join('')}
+    <select class="chip" id="f-curmore"><option value="">${t('more')}</option>${MORE_CURS.filter(c => !curs.includes(c)).map(c => `<option>${c}</option>`).join('')}</select></div>`;
+  const dir = acc ? acc.dir : null;
+  const sub = f => dir === 'to' ? t(f === 'give' ? 'f_to_give' : 'f_to_get') : dir === 'by' ? t(f === 'give' ? 'f_by_give' : 'f_by_get') : t(f === 'give' ? 'f_new_give' : 'f_new_get');
+  const flow = `<div class="flow">
+    <button class="gave ${F.flow === 'give' ? 'on' : ''}" data-act="f-flow" data-flow="give"><b>${ICON.out}${t('give')}</b><span>${sub('give')}</span></button>
+    <button class="got ${F.flow === 'get' ? 'on' : ''}" data-act="f-flow" data-flow="get"><b>${ICON.in}${t('get')}</b><span>${sub('get')}</span></button></div>`;
+  const foreign = F.cur !== local;
+  const src = rateSource(F.cur === 'EUR' ? local : F.cur, F.date);
+  const locRow = foreign ? `<div class="locrow">
+      <label><span>${t(F.flow === 'give' ? 'in_cur' : 'got_in_cur', {cur:local})}</span><input class="inp" id="f-loc" inputmode="decimal" value="${esc(F.loc)}" placeholder="${esc(locPlaceholder())}" autocomplete="off"></label>
+      <label><span>${t('rate', {a:F.cur, b:local})}</span><input class="inp" id="f-rate" inputmode="decimal" value="${esc(F.rate)}" autocomplete="off"></label></div>
+    <div class="hint" id="f-ratesrc">${F.rateTouched ? t('rate_src_manual') : src === 'live' ? t('rate_src_live', {date:fmtDate(F.date, true)}) : src === 'manual' ? t('rate_src_manual') : t('rate_src_approx')} · ${t('loc_hint')}</div>` : '';
+  const today = startOfDay(Date.now()), dd = startOfDay(F.date);
+  return `<h3><span>${edit ? t('edit_entry') : t('new_entry')}</span>${edit ? `<button class="btn sm danger" data-act="f-delete">${t('del')}</button>` : ''}</h3>
+    ${who}${curChips}${F.kind === 'close' ? '' : flow}
+    <div class="amount"><input id="f-amt" inputmode="decimal" placeholder="0" value="${esc(F.amt)}" autocomplete="off" aria-label="${t('amount')}"><span class="c">${esc(curSym(F.cur))}</span></div>
+    ${locRow}
+    <div class="chips" style="align-items:center">
+      <button class="chip ${dd === today ? 'on' : ''}" data-act="f-day" data-d="0">${t('today')}</button>
+      <button class="chip ${dd === today - DAY ? 'on' : ''}" data-act="f-day" data-d="1">${t('yesterday')}</button>
+      <input class="inp" id="f-date" type="date" value="${isoDate(F.date)}" style="flex:1;min-width:140px;padding:7px 10px">
+    </div>
+    <label class="f"><span>${t('note')}</span><input class="inp" id="f-note" value="${esc(F.note)}" placeholder="${t('note_ph')}" autocomplete="off"></label>
+    <div id="f-prev">${previewHtml()}</div>
+    <div class="err" id="f-err">${esc(F.err)}</div>
+    <button class="btn" data-act="f-save" id="f-save">${saveLabel()}</button>`;
+}
+function amtVal(){ const v = parseNum(F.amt); return v > 0 ? v : 0; }
+function locPlaceholder(){
+  const a = amtVal(), r = parseNum(F.rate);
+  return a && r > 0 ? '≈ ' + fmtInput(a * r) : '';
+}
+function delta(){
+  const acc = formAccount(), dir = acc ? acc.dir : (F.flow === 'give' ? 'to' : 'by');
+  const a = amtVal();
+  return {dir, acc, d:((dir === 'to') === (F.flow === 'give') ? a : -a)};
+}
+function previewHtml(){
+  if(!amtVal() || (!F.personId && !F.newName) || F.kind === 'close') return '';
+  const {dir, acc, d} = delta();
+  let bal = acc ? balance(acc.id) : 0;
+  if(F.editId){ const e = D.entries.find(x => x.id === F.editId); if(e && acc && e.debtId === acc.id) bal -= e.amount; }
+  const nb = round2(bal + d), s = dir === 'to' ? nb : -nb;
+  const txt = s > 0 ? t('owes_you') + ' <b>' + fmtMoney(s, F.cur, {abs:true}) + '</b>' : s < 0 ? t('you_owe') + ' <b>' + fmtMoney(s, F.cur, {abs:true}) + '</b>' : '<b>' + t('bal_zero') + '</b>';
+  return `<div class="preview">${t('after')}: <span class="${s > 0 ? 'to' : s < 0 ? 'by' : ''}">${txt}</span></div>` +
+    (nb === 0 && acc && !acc.closed ? `<label class="check"><input type="checkbox" id="f-close" ${F.close ? 'checked' : ''}>${t('close_when_zero')}</label>` : '');
+}
+function saveLabel(){
+  const a = amtVal();
+  return a ? `${t('save')} · ${F.flow === 'give' ? '−' : '+'}${fmtMoney(a, F.cur, {abs:true})}` : t('save');
+}
+function updateForm(){
+  const pv = $('f-prev'); if(pv) pv.innerHTML = previewHtml();
+  const sv = $('f-save'); if(sv) sv.innerHTML = saveLabel();
+  const lc = $('f-loc'); if(lc) lc.placeholder = locPlaceholder();
+}
+async function loadRateForDate(){
+  const want = F.date, cur = F.cur;
+  await histRates(want);
+  if(!F || F.rateTouched || F.date !== want || F.cur !== cur) return;
+  F.rate = fmtRate(cross(F.cur, D.settings.localCur, F.date));
+  const r = $('f-rate'); if(r) r.value = F.rate;
+  const s = $('f-ratesrc'); if(s && topLayer() && topLayer().form) drawLayers();
+  recalcFromLoc();
+}
+function recalcFromLoc(){
+  const l = parseNum(F.loc), r = parseNum(F.rate);
+  if(l > 0 && r > 0 && (F.amtAuto || !amtVal())){
+    F.amt = fmtInput(l / r); F.amtAuto = true;
+    const a = $('f-amt'); if(a) a.value = F.amt;
+  }
+  updateForm();
+}
+function onFormInput(el){
+  if(el.id === 'pp-q'){ F.pq = el.value; $('pp-list').innerHTML = peopleChips(); return; }
+  if(el.id === 'f-amt'){
+    F.amt = el.value; F.amtAuto = false; F.err = '';
+    const a = amtVal(), l = parseNum(F.loc);
+    if(a && l > 0){ F.rate = fmtRate(l / a); F.rateTouched = true; const r = $('f-rate'); if(r) r.value = F.rate; }
+    updateForm(); return;
+  }
+  if(el.id === 'f-loc'){
+    F.loc = el.value; F.locChanged = true;
+    const l = parseNum(F.loc), a = amtVal();
+    if(l > 0 && a && !F.amtAuto){ F.rate = fmtRate(l / a); F.rateTouched = true; const r = $('f-rate'); if(r) r.value = F.rate; updateForm(); }
+    else recalcFromLoc();
+    return;
+  }
+  if(el.id === 'f-rate'){
+    F.rate = el.value; F.rateTouched = true; F.rateTouchedNow = true;
+    if(parseNum(F.loc) > 0){ F.amtAuto = true; recalcFromLoc(); } else updateForm();
+    return;
+  }
+  if(el.id === 'f-note'){ F.note = el.value; return; }
+}
+function onFormChange(el){
+  if(el.id === 'f-date'){ const v = fromIso(el.value); if(isFinite(v)){ F.date = v; drawLayers(); if(F.cur !== D.settings.localCur) loadRateForDate(); } return; }
+  if(el.id === 'f-close'){ F.close = el.checked; return; }
+  if(el.id === 'f-curmore' && el.value){ setFormCur(el.value); return; }
+}
+function setFormCur(c){
+  F.cur = c; F.debtId = null; F.rateTouched = false; F.loc = ''; F.amtAuto = false;
+  F.rate = fmtRate(cross(c, D.settings.localCur, F.date));
+  if(!F.amt) F.flow = repayFlow(formAccount());
+  drawLayers();
+  if(c !== D.settings.localCur) loadRateForDate();
+}
+function saveEntry(){
+  const a = amtVal();
+  if(!F.personId && !F.newName){ F.err = t('need_person'); drawLayers(); return; }
+  if(!a){ F.err = t('need_amount'); drawLayers(); const x = $('f-amt'); if(x) x.focus(); return; }
+  const snap = JSON.stringify(D);
+  if(!F.personId){
+    const p = {id:uid(), name:F.newName.trim(), created:Date.now()}; D.people.push(p); F.personId = p.id;
+  }
+  let acc = formAccount();
+  if(!acc){
+    acc = {id:uid(), personId:F.personId, dir:F.flow === 'give' ? 'to' : 'by', currency:F.cur, title:'', opened:F.date, closed:null, plan:null};
+    D.debts.push(acc);
+  }
+  const amount = (acc.dir === 'to') === (F.flow === 'give') ? a : -a;
+  let e = F.editId ? D.entries.find(x => x.id === F.editId) : null;
+  if(!e){ e = {id:uid(), debtId:acc.id, kind:'tx'}; D.entries.push(e); }
+  e.date = F.date; e.amount = F.kind === 'close' ? (e.amount < 0 ? -a : a) : round2(amount); e.note = F.note.trim();
+  const l = parseNum(F.loc), r = parseNum(F.rate);
+  if(e.loc && !F.locChanged && !F.rateTouchedNow && l > 0){ /* unchanged local amount (may be an estimate from import): keep it */ }
+  else if(F.cur !== D.settings.localCur && l > 0) e.loc = {amt:round2(l), cur:D.settings.localCur, rate:r > 0 ? r : Math.round(l / a * 1e4) / 1e4, inferred:false};
+  else delete e.loc;
+  if(acc.opened > e.date) acc.opened = e.date;
+  if(balance(acc.id) === 0 && F.close && !acc.closed && F.kind !== 'close') acc.closed = Math.max(e.date, lastEntryDate(acc.id));
+  const rc = D.settings.recentCurs.filter(c => c !== F.cur); rc.unshift(F.cur); D.settings.recentCurs = rc.slice(0, 4);
+  save();
+  F = null;
+  popLayer().then(() => {
+    refresh();
+    toast(t('saved'), () => { D = normalize(JSON.parse(snap)); save(); refresh(); });
+  });
+}
+function deleteEntry(){
+  const id = F.editId; F = null;
+  popLayer().then(() => withUndo(t('deleted'), () => {
+    const e = D.entries.find(x => x.id === id);
+    D.entries = D.entries.filter(x => x.id !== id);
+    // an account left without entries disappears
+    if(e && !D.entries.some(x => x.debtId === e.debtId)) D.debts = D.debts.filter(d => d.id !== e.debtId);
+  }));
+}
+
+/* ================= settings ================= */
+function applyTheme(){
+  const th = D.settings.theme;
+  if(th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
+  else delete document.documentElement.dataset.theme;
+}
+function versionText(){ try { const A = window.DebtFlowAndroid; return A && A.getVersion ? A.getVersion() : 'web'; } catch(e){ return 'web'; } }
+function canUpdate(){ try { const A = window.DebtFlowAndroid; return !!(A && A.canSelfUpdate && A.canSelfUpdate()); } catch(e){ return false; } }
+function openSettings(){ pushLayer({type:'page', render:viewSettings}); }
+function usedCurs(){ return [...new Set([...MAIN_CURS, ...D.debts.map(d => d.currency)])].filter(c => c !== D.settings.localCur); }
+function viewSettings(){
+  const s = D.settings, local = s.localCur;
+  const opt = (v, cur, label) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`;
+  const allCurs = [...new Set([...MAIN_CURS, ...MORE_CURS, local])];
+  const rateRow = c => {
+    const src = rateSource(c === 'EUR' ? local : c);
+    const man = c === 'EUR' ? s.manualRates[local] > 0 : s.manualRates[c] > 0;
+    return `<button class="set" data-act="rate-edit" data-cur="${c}"><span>1 ${c}</span><span class="v num">${fmtMoney(cross(c, local), local, {dec:cross(c, local) >= 10 ? 2 : 4})}${man ? ` <span class="tag">${t('manual')}</span>` : src === 'approx' ? ' <span class="tag">≈</span>' : ''}</span></button>`;
+  };
+  return `<div class="top"><button class="iconbtn" data-act="back">${ICON.back}</button><div class="brand">${t('nav_settings')}</div><span style="width:38px"></span></div>
+  <div class="list">
+    <div class="set"><span>${t('language')}</span><select data-set="lang">${LANGS.map(l => opt(l, lang, LANG_NAMES[l])).join('')}</select></div>
+    <div class="set"><span>${t('theme')}</span><select data-set="theme">${opt('auto', s.theme, t('th_auto'))}${opt('light', s.theme, t('th_light'))}${opt('dark', s.theme, t('th_dark'))}</select></div>
+    <div class="set"><span>${t('local_cur')}</span><select data-set="localCur">${allCurs.map(c => opt(c, local, c)).join('')}</select></div>
+    <label class="set"><span>${t('cur_auto')}</span><input type="checkbox" data-set="curAuto" ${s.curAuto ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--accent)"></label>
+  </div>
+  <div class="hint">${t('cur_auto_hint')}</div>
+  <h2>${t('rates')}</h2>
+  <div class="list">${usedCurs().map(rateRow).join('')}
+    <div class="set"><span class="muted small">${C.date ? t('rates_upd', {d:fmtDate(fromIso(C.date), true)}) : t('rates_none')}</span><button class="btn sm ghost" data-act="rates-refresh">${t('refresh')}</button></div></div>
+  <div class="hint">${t('rates_hint')}</div>
+  <h2>${t('data')}</h2>
+  <div class="list">
+    <button class="set" data-act="export">${t('export')}<span class="v">${s.lastBackup ? esc(fmtDate(s.lastBackup, true)) : ''}</span></button>
+    <button class="set" data-act="import">${t('import')}<span class="v">›</span></button>
+    <button class="set" data-act="import-dm">${t('import_dm')}<span class="v">›</span></button>
+    <button class="set" data-act="csv">${t('csv')}<span class="v">›</span></button>
+    <button class="set" data-act="wipe"><span class="by">${t('wipe')}</span><span class="v">›</span></button>
+  </div>
+  <div class="hint">${t('import_dm_hint')}</div>
+  <h2>${t('about')}</h2>
+  <div class="list">
+    <div class="set"><span>${t('author')}</span><span class="v">${esc(AUTHOR)}</span></div>
+    <div class="set"><span>${t('version')}</span><span class="v">${esc(versionText())}</span></div>
+    ${canUpdate() ? `<button class="set" data-act="check-update">${t('check_updates')}<span class="v">›</span></button>` : ''}
+  </div>
+  <div class="hint">${t('credits_txt')}${canUpdate() ? ' ' + t('update_web') + '.' : ''}</div>`;
+}
+async function editRate(c){
+  const local = D.settings.localCur;
+  const v = await askText(t('rate_q', {a:c, b:local}), fmtRate(cross(c, local)), {mode:'decimal'});
+  if(v === null) return;
+  const key = c === 'EUR' ? local : c;
+  const x = parseNum(v);
+  if(!(x > 0)) delete D.settings.manualRates[key];
+  else D.settings.manualRates[key] = c === 'EUR' ? x : perEur(local) / x;
+  save(); refresh();
+}
+
+/* ---------- backup, CSV ---------- */
+function saveFile(name, text, mime){
+  const A = window.DebtFlowAndroid;
+  if(A && A.saveFile){ A.saveFile(name, text, mime); return; }
+  const blob = new Blob([text], {type:mime});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function exportBackup(){
+  D.settings.lastBackup = Date.now(); save();
+  saveFile('debtflow-backup-' + isoDate(Date.now()) + '.json', JSON.stringify({app:'DebtFlow', schema:1, exported:new Date().toISOString(), data:D}, null, 1), 'application/json');
+  if(!window.DebtFlowAndroid) toast(t('backup_saved'));
+  refresh();
+}
+async function importBackup(file){
+  let j;
+  try { j = JSON.parse(await file.text()); } catch(e){ toast(t('import_bad')); return; }
+  const data = j && j.app === 'DebtFlow' ? j.data : j;
+  if(!data || !Array.isArray(data.people) || !Array.isArray(data.entries)){ toast(t('import_bad')); return; }
+  if(D.entries.length && !await ask(t('import_q'), t('import'))) return;
+  D = normalize(data); lang = D.settings.lang || phoneLang(); applyTheme(); save(); refresh(); toast(t('import_ok'));
+}
+function exportCsv(){
+  const n = x => String(round2(x)).replace('.', ',');
+  const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  const rows = [['date','person','currency','direction','type','amount','note','local_amount','local_currency','rate','estimated'].join(';')];
+  for(const e of D.entries.slice().sort((a, b) => a.date - b.date)){
+    const d = debt(e.debtId); if(!d) continue; const p = person(d.personId);
+    rows.push([isoDate(e.date), q(p ? p.name : ''), d.currency, d.dir === 'to' ? 'owed_to_me' : 'i_owe', e.kind === 'close' ? 'close' : gaveFlow(d, e.amount) ? 'gave' : 'got',
+      n(e.amount), q(e.note || d.title), e.loc ? n(e.loc.amt) : '', e.loc ? e.loc.cur : '', e.loc && e.loc.rate ? String(e.loc.rate).replace('.', ',') : '', e.loc && e.loc.inferred ? 'yes' : ''].join(';'));
+  }
+  saveFile('debtflow-' + isoDate(Date.now()) + '.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+}
+async function wipeAll(){
+  if(!await ask(t('wipe_q'), t('del'), true)) return;
+  withUndo(t('deleted'), () => { const s = D.settings; D = blank(); D.settings = s; });
+}
+
+/* ---------- Debt Manager import ---------- */
+async function importDmFile(file){
+  toast(t('dm_reading'));
+  let res;
+  try { res = importDebtManager(await file.arrayBuffer()); }
+  catch(e){ toast(t('dm_bad', {e:e && e.message || e})); return; }
+  const tt = document.querySelector('.toast'); if(tt) tt.remove();
+  if(D.entries.length && !await ask(t('dm_replace_q'), t('import'))) return;
+  const settings = D.settings;
+  D = normalize(res.data); D.settings = settings;
+  save();
+  while(layers.length) await popLayer();
+  UI.tab = 'home'; render();
+  showImportResult(res.rep);
+}
+function showImportResult(r){
+  const v = r.verify;
+  const verify = !v ? `<div class="verify bad">${t('dm_nopivot')}</div>` : v.ok ? `<div class="verify ok">✓ ${t('dm_match')}</div>` :
+    `<div class="verify bad">${t('dm_mismatch')}<ul>${v.diffs.map(x => `<li>${esc(t('dm_diff', {name:x.name, cur:x.cur, dir:x.dir === 'to' ? t('owes_you') : t('you_owe'), a:fmtMoney(x.a, x.cur), b:fmtMoney(x.b, x.cur)}))}</li>`).join('')}</ul></div>`;
+  const inferred = D.entries.filter(e => e.loc && e.loc.inferred).sort((a, b) => b.date - a.date);
+  pushLayer({type:'sheet', render:() => `<h3>${t('dm_result')}</h3>
+    ${verify}
+    <div class="res">
+      <div class="kv"><span>${t('dm_people')}</span><b>${r.people}</b></div>
+      <div class="kv"><span>${t('dm_debts')}</span><b>${r.open} / ${r.closed}</b></div>
+      <div class="kv"><span>${t('dm_entries')}</span><b>${r.entries}</b></div>
+      <div class="kv"><span>${t('dm_inferred')}</span><b>${r.inferred}</b></div>
+      <div class="kv"><span>${t('dm_zero')}</span><b>${r.zero}</b></div>
+      <div class="kv"><span>${t('dm_orphans')}</span><b>${r.orphans.length}</b></div>
+    </div>
+    ${inferred.length ? `<details><summary>${t('dm_inferred')} (~)</summary><div class="mini">${inferred.map(e => { const d = debt(e.debtId); return `<div>${esc(fmtDate(e.date, true))} · ${fmtMoney(e.amount, d.currency, {abs:true})} → ~${fmtMoney(e.loc.amt, e.loc.cur, {dec:0})} <span class="muted">(${esc(fmtRate(e.loc.rate))}) ${esc(e.note)}</span></div>`; }).join('')}</div></details>` : ''}
+    ${r.orphans.length ? `<details><summary>${t('dm_orphans')}</summary><div class="mini">${r.orphans.sort((a, b) => a.date - b.date).map(o => `<div>${esc(o.date ? fmtDate(o.date, true) : '?')} · ${esc(fmtNum(o.amount))} <span class="muted">${esc(o.note)}</span></div>`).join('')}</div></details>` : ''}
+    ${r.skippedContacts.length ? `<details><summary>${t('dm_skipped_contacts')}</summary><div class="mini">${r.skippedContacts.map(n => `<div>${esc(n)}</div>`).join('')}</div></details>` : ''}
+    <div style="height:8px"></div><button class="btn" data-act="sheet-close">${t('done')}</button>`});
+}
+
+/* ================= events ================= */
+document.addEventListener('click', async ev => {
+  const el = ev.target.closest('[data-act],[data-tab],[data-person],[data-entry]');
+  if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if(el.dataset.tab){ UI.tab = el.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  if(el.dataset.person){ openPerson(el.dataset.person); return; }
+  if(el.dataset.entry){ openEntry({entryId:el.dataset.entry}); return; }
+  const top = topLayer();
+  switch(act){
+    case 'scrim': case 'back': case 'sheet-close': popLayer(); break;
+    case 'ask-yes': top && top.answer(true); break;
+    case 'ask-no': top && top.answer(top.cancelValue); break;
+    case 'ask-ok': top && top.answer($('ask-input').value); break;
+    case 'new-entry': openEntry({personId:(layers.find(l => l.person) || {}).person}); break;
+    case 'entry-for': openEntry({debtId:id}); break;
+    case 'entry-person': openEntry({personId:id}); break;
+    case 'settings': openSettings(); break;
+    case 'toggle-settled': UI.showSettled = !UI.showSettled; render(); break;
+    case 'toggle-closed': UI.showClosed = !UI.showClosed; drawLayers(); break;
+    case 'more-activity': UI.aLimit += 300; render(); break;
+    case 'share-person': shareText(statement(id)); break;
+    case 'person-menu': personMenu(id); break;
+    case 'pm-rename': renamePerson(id); break;
+    case 'pm-merge': mergePerson(id); break;
+    case 'pm-merge-to': {
+      const from = el.dataset.from;
+      await popLayer();
+      while(layers.length && layers[layers.length - 1].person === from) await popLayer();
+      withUndo(t('merged'), () => { D.debts.forEach(d => { if(d.personId === from) d.personId = id; }); D.people = D.people.filter(p => p.id !== from); });
+      openPerson(id);
+      break;
+    }
+    case 'pm-delete': deletePerson(id); break;
+    case 'close-debt': closeDebt(id); break;
+    case 'closed-debt': closedDebtMenu(id); break;
+    case 'plan': openPlan(id); break;
+    case 'pl-cur': PL.amt = $('pl-amt').value; PL.start = $('pl-start').value; PL.cur = el.dataset.cur; drawLayers(); break;
+    case 'pl-save': {
+      const d = debt(PL.id), a = parseNum($('pl-amt').value), st = fromIso($('pl-start').value);
+      if(!(a > 0)){ $('pl-amt').focus(); break; }
+      d.plan = {amt:a, cur:PL.cur, start:isFinite(st) ? st : Date.now()}; save(); await popLayer(); refresh(); break;
+    }
+    case 'pl-remove': debt(PL.id).plan = null; save(); await popLayer(); refresh(); break;
+    // entry form
+    case 'f-person': F.personId = id; F.newName = ''; F.debtId = null; F.cur = defaultCur(id); F.rate = fmtRate(cross(F.cur, D.settings.localCur, F.date)); F.flow = repayFlow(formAccount()); F.err = ''; drawLayers(); break;
+    case 'f-newperson': F.newName = F.pq.trim(); F.personId = null; F.err = ''; drawLayers(); break;
+    case 'f-change-person': F.personId = null; F.newName = ''; F.debtId = null; F.pq = ''; drawLayers(); break;
+    case 'f-cur': setFormCur(el.dataset.cur); break;
+    case 'f-flow': F.flow = el.dataset.flow; drawLayers(); break;
+    case 'f-day': F.date = startOfDay(Date.now()) - (+el.dataset.d) * DAY + 12 * 3600e3; if(+el.dataset.d === 0) F.date = Date.now(); drawLayers(); if(F.cur !== D.settings.localCur) loadRateForDate(); break;
+    case 'f-save': saveEntry(); break;
+    case 'f-delete': deleteEntry(); break;
+    // settings
+    case 'rate-edit': editRate(el.dataset.cur); break;
+    case 'rates-refresh': updateRates(true); break;
+    case 'export': exportBackup(); break;
+    case 'import': $('file-backup').click(); break;
+    case 'import-dm': $('file-dm').click(); break;
+    case 'csv': exportCsv(); break;
+    case 'wipe': wipeAll(); break;
+    case 'check-update': try { window.DebtFlowAndroid.checkForUpdate(); } catch(e){} break;
+  }
+});
+document.addEventListener('input', ev => {
+  const el = ev.target;
+  if(el.id === 'q' || el.id === 'aq'){
+    if(el.id === 'q') UI.q = el.value; else { UI.aq = el.value; UI.aLimit = 200; }
+    const pos = el.selectionStart; render();
+    const n = $(el.id); if(n){ n.focus(); try { n.setSelectionRange(pos, pos); } catch(e){} }
+    return;
+  }
+  if(F && topLayer() && topLayer().form) onFormInput(el);
+});
+document.addEventListener('change', ev => {
+  const el = ev.target;
+  if(el.id === 'file-backup' && el.files[0]){ importBackup(el.files[0]); el.value = ''; return; }
+  if(el.id === 'file-dm' && el.files[0]){ importDmFile(el.files[0]); el.value = ''; return; }
+  if(el.dataset.set){
+    const k = el.dataset.set, s = D.settings;
+    if(k === 'lang'){ s.lang = el.value; lang = el.value; }
+    else if(k === 'theme'){ s.theme = el.value; applyTheme(); }
+    else if(k === 'localCur'){ s.localCur = el.value; s.curAuto = false; }
+    else if(k === 'curAuto'){ s.curAuto = el.checked; if(s.curAuto) detectCurrency(); }
+    save(); refresh(); return;
+  }
+  if(F && topLayer() && topLayer().form) onFormChange(el);
+});
+document.addEventListener('keydown', ev => {
+  if(ev.key !== 'Enter') return;
+  const el = ev.target;
+  if(el.id === 'ask-input'){ ev.preventDefault(); topLayer() && topLayer().answer(el.value); }
+  else if(el.id === 'pp-q' && F && F.pq.trim()){
+    ev.preventDefault();
+    const q = F.pq.trim().toLowerCase(), hit = D.people.find(p => p.name.trim().toLowerCase() === q);
+    if(hit){ F.personId = hit.id; F.cur = defaultCur(hit.id); F.flow = repayFlow(formAccount()); } else F.newName = F.pq.trim();
+    drawLayers();
+  }
+  else if((el.id === 'f-amt' || el.id === 'f-note' || el.id === 'f-loc') && F){ ev.preventDefault(); saveEntry(); }
+});
+
+/* ================= start ================= */
+load();
+lang = D.settings.lang || phoneLang();
+applyTheme();
+render();
+try { history.replaceState({df:0}, ''); } catch(e){}
+try { window.DebtFlowAndroid && window.DebtFlowAndroid.ready(); } catch(e){}
+if(!C.fetched || Date.now() - C.fetched > 6 * 3600e3) updateRates(false);
+detectCurrency();
+</script>
+</body>
+</html>

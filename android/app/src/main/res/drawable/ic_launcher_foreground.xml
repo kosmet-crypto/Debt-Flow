@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two opposite arrows: money going out and coming in (same mark as the logo in index.html). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="6.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M33.2,43.6H64.4L55.3,34.5" />
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="6.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M74.8,64.4H43.6L52.7,73.5" />
+</vector>
