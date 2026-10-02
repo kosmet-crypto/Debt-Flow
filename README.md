@@ -24,5 +24,10 @@ approximate rates or the rates you enter.
 ## Files
 
 - `index.html`: the whole app (HTML, CSS and JS), with no build step and no dependencies.
+- `android/`: a small WebView wrapper. The page updates itself silently from `main`, and the app
+  offers a new APK when the Android part changes.
+
+Install: download `debtflow.apk` from the latest
+[release](https://github.com/kosmet-crypto/Debt-Tracker/releases/latest) and open it on the phone.
 
 Author: Ivan St. Epicurus001 - Srbija/Norge

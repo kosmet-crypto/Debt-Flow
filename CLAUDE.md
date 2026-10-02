@@ -33,6 +33,19 @@ Personal Android app (WebView) for tracking debts; replaces "Debt Manager Pro" a
   `checkForUpdate`, `http`, `saveFile(name, text, mime)`, `shareText`. `<meta name="debtflow-native-api">`
   declares the bridge version the page needs.
 
+## Android wrapper and updates (same setup as GrowPort)
+
+- `android/`: WebView wrapper, package `com.kosmet.debtflow`, copies `index.html` into the APK at build time.
+  `MainActivity` (bridge `DebtFlowAndroid`, geolocation permission, file save, share), `WebUpdater`
+  (silent page update from `main`), `ApkInstaller` (in-app APK update, sideload flavor only).
+- `.github/workflows/android.yml` builds on every push (`main`, `claude/**`, `ccr-**`); only `main`
+  publishes a Release `v1.0.<run>` with `debtflow.apk`.
+- **Merging to `main` ships to the phone:** the app downloads the new `index.html` at the next start
+  and uses it from the start after that. Changes in `android/` need a new APK (the app offers it).
+- When the page starts using a new `DebtFlowAndroid` method, raise `<meta name="debtflow-native-api">`
+  in `index.html` **and** `WebUpdater.NATIVE_API`.
+- `targetSdk` stays 34. The keystore in the repo is intentional (every CI build must update the app).
+
 ## Checking changes
 
 - Syntax: `sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/df.js && node --check /tmp/df.js`
