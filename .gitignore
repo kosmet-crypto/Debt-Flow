@@ -1,0 +1,8 @@
+# Private data: Debt Manager exports and other databases never go into this public repo.
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+test-data/
+node_modules/
+.DS_Store
