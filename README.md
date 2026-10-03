@@ -13,6 +13,10 @@ repayment plan is going. It replaces the Android app *Debt Manager Pro* and can 
   phone by a small built-in reader. The import is checked against Debt Manager's own totals. Kroner
   amounts written in notes ("16 000 nok vraćeno", "3000 kr") are read as estimated local amounts and
   shown with `~`.
+- **Statistics per debt:** balance over time with the projected finish (realistic date and an
+  optimistic–cautious range), what you actually sent in kroner and at what average rate, repayments
+  per month, this year against last year, and spending by category read from the notes.
+- **Same as last time:** repeat the previous entry with one tap.
 - Serbian (Cyrillic), English and Norwegian. Light and dark theme. JSON backup and restore, CSV export
   for Excel. Undo after saving or deleting.
 - The local currency can follow your location: one coarse reading at start, matched offline.
