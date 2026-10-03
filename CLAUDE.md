@@ -29,6 +29,13 @@ Personal Android app (WebView) for tracking debts; replaces "Debt Manager Pro" a
   The acceptance check compares open balances with `namePivot` per (person, currency, direction).
 - Entry form: the user picks the money flow (*I give* / *I get*). The sign follows from the
   account direction (`gaveFlow`, `saveEntry`).
+- Statistics (`/* ===== statistics ===== */`): per-debt page from the account card. "Repayments" are
+  `kind tx` entries with `amount < 0`. `finishRange` uses the last 12 complete months (zeros included):
+  realistic = mean, optimistic = max(P75, mean), cautious = min(P25, mean), so the band always encloses
+  the realistic line; fewer than 6 months → realistic only; >10 years or pace 0 → "10+". Charts are
+  hand-written SVG (`balanceChart`, `barChart`) with a touch/hover tooltip (`CH`, `chartPointer`).
+- Spending categories: `settings.cats` `[{id, name, words}]`, matched on entry notes after `fold()`
+  (lowercase, Cyrillic → Latin, no diacritics). Editable in Settings.
 - Android bridge `window.DebtFlowAndroid` (optional): `getVersion`, `ready`, `canSelfUpdate`,
   `checkForUpdate`, `http`, `saveFile(name, text, mime)`, `shareText`. `<meta name="debtflow-native-api">`
   declares the bridge version the page needs.
@@ -47,6 +54,9 @@ Personal Android app (WebView) for tracking debts; replaces "Debt Manager Pro" a
 - `targetSdk` stays 34. The keystore in the repo is intentional (every CI build must update the app).
 
 ## Checking changes
+
+- `node tests/run.js`: statistics math on hand-computed cases, categories, "same as last time", and
+  screenshots (light/dark, 390 and 1280 px) into `tests/out/` (git-ignored). Made-up data only.
 
 - Syntax: `sed -n '/<script>/,/<\/script>/p' index.html | sed '1d;$d' > /tmp/df.js && node --check /tmp/df.js`
 - UI: Playwright/Chromium at phone size (390×844, `hasTouch`), opened as `file://`. Click through the

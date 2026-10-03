@@ -214,6 +214,49 @@ details summary{cursor:pointer;font-weight:650;font-size:13.5px;padding:6px 0}
 .seg{display:flex;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
 .seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:7px 6px;font-size:13px;font-weight:600;color:var(--ink2)}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* statistics */
+.ct{font-weight:700;font-size:15px;margin-bottom:10px}
+.chart{position:relative;margin:2px 0 6px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.c-grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3;vector-effect:non-scaling-stroke}
+.c-axis{stroke:var(--muted);stroke-width:1;opacity:.5;vector-effect:non-scaling-stroke}
+.c-now{stroke:var(--muted);stroke-width:1;opacity:.35;stroke-dasharray:1 3;vector-effect:non-scaling-stroke}
+.c-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.c-area{fill:var(--accent);opacity:.09}
+.c-band{fill:var(--accent);opacity:.17}
+.c-real{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:2 4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.c-plan{fill:none;stroke:var(--warn);stroke-width:1.5;stroke-dasharray:6 4;vector-effect:non-scaling-stroke}
+.c-cross{stroke:var(--ink2);stroke-width:1;opacity:.5;vector-effect:non-scaling-stroke}
+.c-dot{fill:var(--accent);stroke:var(--card);stroke-width:2;vector-effect:non-scaling-stroke}
+.c-lbl{fill:var(--muted);font-size:10px}
+.c-bar{fill:var(--accent)} .c-bar.dim{opacity:.45}
+.c-zero{stroke:var(--line);stroke-width:2;vector-effect:non-scaling-stroke}
+.c-ymax{position:absolute;left:8px;top:-4px;font-size:10.5px;color:var(--muted);background:var(--card);padding:0 3px;border-radius:4px}
+.tip{position:absolute;top:-6px;transform:translateY(-100%);background:var(--card);border:1px solid var(--line);box-shadow:0 8px 24px -10px rgba(0,0,0,.35);border-radius:10px;padding:7px 10px;font-size:12px;line-height:1.45;white-space:nowrap;pointer-events:none;z-index:2;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink2);margin:2px 0 10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:16px;height:0;border-top:2px solid var(--accent)}
+.legend i.lg-real{border-top-style:dotted} .legend i.lg-plan{border-top:2px dashed var(--warn)}
+.legend i.lg-band{height:9px;border:0;background:var(--accent);opacity:.25;border-radius:3px}
+.kpis{display:flex;gap:8px;margin-top:4px}
+.kpis>div{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.kpis>div.main{border-color:var(--accent);background:var(--accent-soft)}
+.kpis span{display:block;font-size:11px;color:var(--muted)}
+.kpis b{font-size:14px;font-weight:700}
+.big2{font-size:26px;font-weight:760;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th{font-size:12px;color:var(--muted);text-align:right;font-weight:700;padding:4px 0}
+.tbl td{padding:7px 0;border-top:1px solid var(--line);text-align:right;vector-effect:none}
+.tbl td:first-child,.tbl th:first-child{text-align:left;color:var(--ink2)}
+.tbl small{color:var(--muted)}
+.hbar{display:grid;grid-template-columns:minmax(80px,32%) 1fr auto;gap:10px;align-items:center;width:100%;border:0;background:transparent;padding:6px 0;text-align:left;font-size:13.5px}
+.hbar .hn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar .ht{height:12px;border-radius:0 4px 4px 0;background:transparent}
+.hbar .ht i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.hbar .ht i.dim{background:var(--muted);opacity:.55}
+.hbar .hv{font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.acct .fin{font-size:12.5px;color:var(--ink2);margin-top:6px}
 </style>
 </head>
 <body>
@@ -325,6 +368,36 @@ const L = {
   st_title:['{name} · balance on {d}','{name} · стање на дан {d}','{name} · saldo per {d}'], st_owes:['You owe me {v}','Дугујеш ми {v}','Du skylder meg {v}'],
   st_iowe:['I owe you {v}','Дугујем ти {v}','Jeg skylder deg {v}'], st_last:['Latest:','Последње:','Siste:'],
   copied:['Copied','Копирано','Kopiert'],
+  // statistics
+  stats:['Statistics','Статистика','Statistikk'], st_balance:['Balance over time','Стање кроз време','Saldo over tid'],
+  pr_real:['Realistic','Реално','Realistisk'], pr_opt:['Optimistic','Оптимистично','Optimistisk'], pr_caut:['Cautious','Опрезно','Forsiktig'],
+  pr_range:['Range','Распон','Spenn'], ten_plus:['10+ years','10+ година','10+ år'], finish_short:['Paid off','Крај','Nedbetalt'],
+  finish_real:['Paid off around {d}','Крај око: {d}','Nedbetalt rundt {d}'], finish_range:['Paid off around {d} ({a} – {b})','Крај око: {d} ({a} – {b})','Nedbetalt rundt {d} ({a} – {b})'],
+  finish_hint:['Based on the last {n} complete months: on average {a} a month. Optimistic and cautious use your better and weaker months (75th and 25th percentile).','На основу последњих {n} пуних месеци: просечно {a} месечно. Оптимистично и опрезно рачунају по бољим и слабијим месецима (75. и 25. перцентил).','Basert på de siste {n} hele månedene: i snitt {a} i måneden. Optimistisk og forsiktig bruker de bedre og svakere månedene (75. og 25. persentil).'],
+  finish_more:['Only {n} complete months so far; the range needs at least 6.','Тек {n} пуна месеца; за распон треба бар 6.','Bare {n} hele måneder så langt; spennet trenger minst 6.'],
+  st_sent:['Sent in {cur}','Послато у {cur}','Sendt i {cur}'], st_sent_for:['for {v} in {n} payments','за {v} у {n} уплата','for {v} i {n} betalinger'],
+  st_avg_rate:['Your average rate','Твој просечан курс','Din snittkurs'], st_today_rate:['Rate today','Данашњи курс','Dagens kurs'],
+  st_today_val:['Same amount at today\'s rate','Исти износ по данашњем курсу','Samme beløp med dagens kurs'],
+  st_cheaper:['{v} less than at today\'s rate','{v} мање него по данашњем курсу','{v} mindre enn med dagens kurs'],
+  st_dearer:['{v} more than at today\'s rate','{v} више него по данашњем курсу','{v} mer enn med dagens kurs'],
+  st_est:['{n} amounts are estimated from notes (~).','{n} износа је процењено из белешки (~).','{n} beløp er anslått fra notater (~).'],
+  st_missing:['{n} payments have no {cur} amount and are not counted here.','{n} уплата нема износ у {cur} и није урачунато овде.','{n} betalinger har ikke beløp i {cur} og er ikke tatt med her.'],
+  st_monthly:['Repaid per month','Враћено по месецима','Tilbakebetalt per måned'], st_sent_short:['sent','послато','sendt'],
+  st_partial:['month in progress','месец још траје','måneden pågår'], st_12_total:['Last 12 months: {v} · on average {a} a month','Последњих 12 месеци: {v} · просечно {a} месечно','Siste 12 måneder: {v} · i snitt {a} i måneden'],
+  st_loc_only:['Payments without a local amount count as 0 here.','Уплате без локалног износа се овде рачунају као 0.','Betalinger uten lokalt beløp teller som 0 her.'],
+  st_years:['This year and last year','Ова и прошла година','I år og i fjor'], st_until:['Until {d}','До {d}','Til {d}'], st_whole_year:['Whole year','Цела година','Hele året'],
+  st_count:['Payments','Број уплата','Betalinger'], st_best:['Best month','Најбољи месец','Beste måned'],
+  st_more_pct:['{n}% more than by this date last year','{n}% више него до овог датума прошле године','{n} % mer enn til samme dato i fjor'],
+  st_less_pct:['{n}% less than by this date last year','{n}% мање него до овог датума прошле године','{n} % mindre enn til samme dato i fjor'],
+  st_cats:['By category','По категоријама','Etter kategori'], st_all:['All','Све','Alle'],
+  st_cats_hint:['Categories come from the notes. Tap a bar to see the entries. Edit the words in Settings.','Категорије се препознају из белешки. Тапни стубић да видиш уносе. Речи мењаш у Подешавањима.','Kategoriene hentes fra notatene. Trykk på en stolpe for å se postene. Rediger ordene under Innstillinger.'],
+  cat_toys:['Toys','Играчке','Leker'], cat_tech:['Tech and gear','Техника и опрема','Teknikk og utstyr'], cat_travel:['Travel and souvenirs','Путовања и сувенири','Reiser og suvenirer'],
+  cat_everyday:['Everyday and games','Свакодневно и игре','Hverdag og spill'], cat_other:['Other','Остало','Annet'],
+  cats:['Spending categories','Категорије трошкова','Utgiftskategorier'],
+  cats_hint:['A note belongs to the first category whose word it contains (capital letters, Cyrillic and Latin do not matter). Everything else is “Other”.','Белешка иде у прву категорију чију реч садржи (велика слова, ћирилица и латиница нису битни). Све остало је „Остало“.','Et notat havner i den første kategorien som har et ord fra notatet (store bokstaver og kyrillisk/latinsk spiller ingen rolle). Alt annet er «Annet».'],
+  cats_words:['Words, separated by commas','Речи, одвојене зарезом','Ord, adskilt med komma'], cats_add:['Category','Категорија','Kategori'], cats_reset:['Defaults','Подразумеване','Standard'],
+  cats_reset_q:['Replace your categories with the default ones?','Заменити твоје категорије подразумеваним?','Erstatte kategoriene dine med standardene?'],
+  same_as_last:['Same as last time','Као прошли пут','Som sist'], repeat_today:['Repeat today','Понови данас','Gjenta i dag'],
   update_web:['Updates come in by themselves','Ажурирања стижу сама','Oppdateringer kommer av seg selv'],
 };
 const LANGS = ['en','sr','nb'];
@@ -442,9 +515,17 @@ const ICON = {
 /* ================= data ================= */
 // D: user data (schema 1), saved in localStorage. C: exchange-rate cache (not in backups).
 const STORE_KEY = 'debtflow.data.v1', CACHE_KEY = 'debtflow.cache.v1';
+// Default spending categories (words matched in entry notes); editable in Settings.
+const DEFAULT_CATS = [
+  {id:'toys', name:'', words:['lego','лего','lol','барби','barbie','луткице']},
+  {id:'tech', name:'', words:['телефон','redmi','редми','xiaomi','ми 10','слушалице','sony','ps5','kontroler','ранац']},
+  {id:'travel', name:'', words:['авион','карта','концерт','бриселу','italija','beč','budapest','братислава','сувенири','магнети','плоче','ploce']},
+  {id:'everyday', name:'', words:['ikea','икеа','књига','дневник','стикери','попит','робукс','роблокс','ае']},
+];
+function defaultCats(){ return DEFAULT_CATS.map(c => ({id:c.id, name:'', words:c.words.slice()})); }
 function blank(){
   return {schema:1, people:[], debts:[], entries:[],
-    settings:{lang:null, theme:'auto', localCur:'NOK', curAuto:true, manualRates:{}, lastBackup:0, recentCurs:[]}};
+    settings:{lang:null, theme:'auto', localCur:'NOK', curAuto:true, manualRates:{}, lastBackup:0, recentCurs:[], cats:defaultCats()}};
 }
 // Fills in defaults so older data and backups keep loading.
 function normalize(d){
@@ -463,6 +544,8 @@ function normalize(d){
     settings:Object.assign(b.settings, d.settings || {})};
   if(!out.settings.manualRates || typeof out.settings.manualRates !== 'object') out.settings.manualRates = {};
   if(!Array.isArray(out.settings.recentCurs)) out.settings.recentCurs = [];
+  out.settings.cats = Array.isArray(out.settings.cats) ? out.settings.cats.filter(c => c && c.id).map(c => ({id:String(c.id), name:String(c.name || ''),
+    words:Array.isArray(c.words) ? c.words.map(String).filter(Boolean) : []})) : defaultCats();
   return out;
 }
 let D = blank(), C = {rates:null, date:null, hist:{}}, storageOk = true;
@@ -1080,7 +1163,9 @@ function viewPerson(id){
           <span class="st ${pi.diff < -0.5 ? 'late' : 'ok'}">${pi.diff < -0.5 ? t('plan_behind', {v:fmtMoney(-pi.diff, pi.cur, {dec:0})}) : pi.diff > 0.5 ? t('plan_ahead', {v:fmtMoney(pi.diff, pi.cur, {dec:0})}) : t('plan_on')}</span></div>
         <div class="bar"><span style="width:${Math.min(100, Math.round(pi.progress * 100))}%"></span></div>
         <div class="muted small">${t('plan_paid', {a:fmtMoney(pi.paid, pi.cur, {dec:0}), b:fmtMoney(pi.expected, pi.cur, {dec:0})})}${pi.months ? '<br>' + t('plan_left', {n:pi.months, d:fmtMonth(pi.end, true)}) : ''}</div></div>` : ''}
+      ${(() => { const fl = finishLine(d); return fl ? `<div class="fin">${esc(fl)}</div>` : ''; })()}
       <div class="acts"><button class="btn sm" data-act="entry-for" data-id="${d.id}">${ICON.plus}${t('add_entry')}</button>
+        <button class="btn sm ghost" data-act="stats" data-id="${d.id}">${t('stats')}</button>
         <button class="btn sm ghost" data-act="plan" data-id="${d.id}">${t('plan')}</button>
         <button class="btn sm ghost" data-act="close-debt" data-id="${d.id}">${t('close_debt')}</button></div>
     </div>`;
@@ -1271,6 +1356,7 @@ function renderEntry(){
   const today = startOfDay(Date.now()), dd = startOfDay(F.date);
   return `<h3><span>${edit ? t('edit_entry') : t('new_entry')}</span>${edit ? `<button class="btn sm danger" data-act="f-delete">${t('del')}</button>` : ''}</h3>
     ${who}${curChips}${F.kind === 'close' ? '' : flow}
+    ${repeatChip()}
     ${amtBox}
     ${locRow}
     <div class="chips" style="align-items:center">
@@ -1281,7 +1367,8 @@ function renderEntry(){
     <label class="f"><span>${t('note')}</span><input class="inp" id="f-note" value="${esc(F.note)}" placeholder="${t('note_ph')}" autocomplete="off"></label>
     <div id="f-prev">${previewHtml()}</div>
     <div class="err" id="f-err">${esc(F.err)}</div>
-    <button class="btn" data-act="f-save" id="f-save">${saveLabel()}</button>`;
+    <button class="btn" data-act="f-save" id="f-save">${saveLabel()}</button>
+    ${edit && F.kind !== 'close' ? `<div style="height:8px"></div><button class="btn ghost" data-act="f-repeat-today">↻ ${t('repeat_today')}</button>` : ''}`;
 }
 function rateHint(){
   const src = rateSource(F.cur === 'EUR' ? D.settings.localCur : F.cur, F.date);
@@ -1445,6 +1532,7 @@ function viewSettings(){
     <button class="set" data-act="export">${t('export')}<span class="v">${s.lastBackup ? esc(fmtDate(s.lastBackup, true)) : ''}</span></button>
     <button class="set" data-act="import">${t('import')}<span class="v">›</span></button>
     <button class="set" data-act="import-dm">${t('import_dm')}<span class="v">›</span></button>
+    <button class="set" data-act="cats">${t('cats')}<span class="v">›</span></button>
     <button class="set" data-act="csv">${t('csv')}<span class="v">›</span></button>
     <button class="set" data-act="wipe"><span class="by">${t('wipe')}</span><span class="v">›</span></button>
   </div>
@@ -1590,6 +1678,324 @@ function showImportResult(r){
     <div style="height:8px"></div><button class="btn" data-act="sheet-close">${t('done')}</button>`});
 }
 
+/* ================= statistics ================= */
+// "Repayments" are entries that lower the debt (kind tx, amount < 0), in the debt currency.
+function repayments(d){ return D.entries.filter(e => e.debtId === d.id && e.kind === 'tx' && e.amount < 0); }
+function monthIndex(ms){ const x = new Date(ms); return x.getFullYear() * 12 + x.getMonth(); }
+function msOfIndex(i){ return new Date(Math.floor(i / 12), i % 12, 1).getTime(); }
+const MONTH = 30.4375 * DAY;
+// Last n complete calendar months (oldest first), never before the month the account was opened.
+function completeMonths(d, n, now){
+  const cur = monthIndex(now), first = monthIndex(d.opened || now);
+  const out = []; for(let i = cur - n; i < cur; i++) if(i >= first) out.push(i);
+  return out;
+}
+// Repaid per month for the given month indexes (useLoc: local amounts actually sent, where entries have them).
+function monthlyRepaid(d, idxs, useLoc){
+  const m = {}; idxs.forEach(i => { m[i] = 0; });
+  for(const e of repayments(d)){ const i = monthIndex(e.date); if(i in m) m[i] += useLoc ? (e.loc ? e.loc.amt : 0) : -e.amount; }
+  return idxs.map(i => round2(m[i]));
+}
+// Percentile with linear interpolation between closest ranks (like Excel PERCENTILE.INC).
+function quantile(arr, q){
+  if(!arr.length) return 0;
+  const s = arr.slice().sort((a, b) => a - b), pos = (s.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return s[lo] + (s[hi] - s[lo]) * (pos - lo);
+}
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+// Months to pay `bal` at `pace` a month; null = never or more than 10 years.
+function monthsToPay(bal, pace){ if(!(pace > 0)) return null; const m = Math.ceil(bal / pace - 1e-9); return m > 120 ? null : m; }
+function finishRange(d, now){
+  now = now || Date.now();
+  const bal = balance(d.id); if(!(bal > 0)) return null;
+  const idx = completeMonths(d, 12, now), tot = monthlyRepaid(d, idx);
+  const real = mean(tot);
+  // The band always encloses the realistic pace (a few big months can push the mean past P75).
+  const opt = Math.max(quantile(tot, 0.75), real), caut = Math.min(quantile(tot, 0.25), real);
+  const cur = monthIndex(now), end = m => m == null ? null : msOfIndex(cur + m);
+  const r = {bal, months:idx.length, enough:idx.length >= 6, pace:{real, opt, caut}};
+  for(const k of ['real', 'opt', 'caut']){ r[k] = monthsToPay(bal, r.pace[k]); r['end_' + k] = end(r[k]); }
+  return r;
+}
+function fmtEnd(ms){ return ms == null ? t('ten_plus') : fmtMonth(ms, true); }
+function finishLine(d){
+  const f = finishRange(d); if(!f || !f.months) return '';
+  if(!f.enough || f.end_opt === f.end_caut) return t('finish_real', {d:fmtEnd(f.end_real)});
+  return t('finish_range', {d:fmtEnd(f.end_real), a:fmtEnd(f.end_opt), b:fmtEnd(f.end_caut)});
+}
+
+/* ---------- categories (from entry notes) ---------- */
+const CYR = {а:'a',б:'b',в:'v',г:'g',д:'d',ђ:'dj',е:'e',ж:'z',з:'z',и:'i',ј:'j',к:'k',л:'l',љ:'lj',м:'m',н:'n',њ:'nj',о:'o',п:'p',р:'r',с:'s',т:'t',ћ:'c',у:'u',ф:'f',х:'h',ц:'c',ч:'c',џ:'dz',ш:'s',й:'j',ы:'y',э:'e',ю:'ju',я:'ja',ё:'e',ь:'',ъ:''};
+// Lowercase Latin without diacritics, so "Беч", "Beč" and "bec" all compare equal.
+function fold(s){
+  return String(s || '').toLowerCase().replace(/[Ѐ-ӿ]/g, c => CYR[c] != null ? CYR[c] : c)
+    .replace(/đ/g, 'dj').normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+function catName(c){ return c.name || (L['cat_' + c.id] ? t('cat_' + c.id) : c.id); }
+let catCache = null;
+function catMatchers(){
+  const key = JSON.stringify(D.settings.cats);
+  if(catCache && catCache.key === key) return catCache.list;
+  const list = D.settings.cats.map(c => ({id:c.id, res:c.words.map(w => fold(w).trim()).filter(Boolean)
+    .map(w => new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))}));
+  catCache = {key, list};
+  return list;
+}
+function categoryOf(note){
+  const n = fold(note);
+  if(!n) return 'other';
+  for(const c of catMatchers()) if(c.res.some(r => r.test(n))) return c.id;
+  return 'other';
+}
+
+/* ---------- small SVG charts with a touch/hover tooltip ---------- */
+const CH = {};   // chart id -> {x0, x1, tip(x) -> html}
+let chartSeq = 0;
+const CW = 340, CH_ = 168, CPL = 6, CPR = 6, CPT = 10, CPB = 22;
+function axisLabel(v, cur){ return fmtMoney(v, cur, {dec:0}).replace(/ /g, ' '); }
+// Smallest "round" number ≥ v (1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10 × 10^n), for the top of an axis.
+function niceMax(v){
+  if(v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p;
+  return [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find(x => x >= n - 1e-9) * p;
+}
+function balanceChart(d){
+  const now = Date.now(), cur = d.currency;
+  const pts = []; let b = 0;
+  for(const e of entriesOf(d.id)){ b = round2(b + e.amount); pts.push([e.date, b]); }
+  if(!pts.length) return '';
+  const bal = b, f = finishRange(d, now);
+  // projection horizon: a bit past the realistic end (or a year when there is no end in sight)
+  let x1 = now;
+  if(f){ const ends = [f.end_real, f.end_opt].filter(Boolean); x1 = ends.length ? Math.max(...ends) + Math.max(2 * MONTH, (Math.max(...ends) - now) * 0.15) : now + 12 * MONTH; }
+  const x0 = Math.min(pts[0][0], d.opened || pts[0][0]);
+  if(x1 - x0 < 60 * DAY) x1 = x0 + 60 * DAY;
+  const proj = k => t0 => f && t0 >= now ? Math.max(0, bal - f.pace[k] * (t0 - now) / MONTH) : null;
+  let plan = null;
+  if(d.plan){
+    const per = d.plan.cur === cur ? d.plan.amt : d.plan.amt * cross(d.plan.cur, cur);
+    const s0 = d.plan.start; let b0 = 0; for(const [tt, v] of pts) if(tt <= s0) b0 = v;
+    if(per > 0) plan = t0 => t0 < s0 ? null : Math.max(0, b0 - per * (t0 - s0) / MONTH);
+  }
+  const histAt = t0 => { let v = 0; for(const [tt, vv] of pts){ if(tt <= t0) v = vv; else break; } return v; };
+  const ymax = niceMax(Math.max(...pts.map(p => p[1]), plan ? plan(Math.max(x0, d.plan.start)) || 0 : 0, 1));
+  const ymin = Math.min(0, ...pts.map(p => p[1]));
+  const X = tt => CPL + (tt - x0) / (x1 - x0) * (CW - CPL - CPR), Y = v => CPT + (ymax - v) / (ymax - ymin) * (CH_ - CPT - CPB);
+  let path = `M${X(pts[0][0]).toFixed(1)},${Y(0).toFixed(1)}`;
+  let prev = 0;
+  for(const [tt, v] of pts){ path += `L${X(tt).toFixed(1)},${Y(prev).toFixed(1)}L${X(tt).toFixed(1)},${Y(v).toFixed(1)}`; prev = v; }
+  path += `L${X(now).toFixed(1)},${Y(bal).toFixed(1)}`;
+  const area = path + `L${X(now).toFixed(1)},${Y(0).toFixed(1)}Z`;
+  const line = (fn, from, to) => { let s = ''; const n = 48; for(let i = 0; i <= n; i++){ const tt = from + (to - from) * i / n, v = fn(tt); if(v == null) continue; s += (s ? 'L' : 'M') + X(tt).toFixed(1) + ',' + Y(v).toFixed(1); } return s; };
+  let band = '', real = '';
+  if(f && bal > 0){
+    const n = 48, up = [], lo = [];
+    for(let i = 0; i <= n; i++){ const tt = now + (x1 - now) * i / n; up.push(X(tt).toFixed(1) + ',' + Y(proj('caut')(tt)).toFixed(1)); lo.push(X(tt).toFixed(1) + ',' + Y(proj('opt')(tt)).toFixed(1)); }
+    if(f.enough) band = `<polygon class="c-band" points="${up.concat(lo.reverse()).join(' ')}"/>`;
+    real = `<path class="c-real" d="${line(proj('real'), now, x1)}"/>`;
+  }
+  const planPath = plan ? `<path class="c-plan" d="${line(plan, Math.max(x0, d.plan.start), x1)}"/>` : '';
+  // x labels: years for long spans, otherwise every few months
+  const labels = []; const span = (x1 - x0) / (365 * DAY);
+  if(span > 2.2){ for(let y = new Date(x0).getFullYear() + 1; y <= new Date(x1).getFullYear(); y++){ const tt = new Date(y, 0, 1).getTime(); labels.push([tt, String(y)]); } }
+  else { const step = span > 1 ? 3 : span > 0.5 ? 2 : 1; for(let i = monthIndex(x0) + 1; msOfIndex(i) < x1; i++) if(i % step === 0) labels.push([msOfIndex(i), new Date(msOfIndex(i)).toLocaleDateString(LOCALE[lang], {month:'short'}).replace('.', '')]); }
+  const thin = labels.length > 7 ? labels.filter((_, i) => i % Math.ceil(labels.length / 7) === 0) : labels;
+  const id = 'ch' + (++chartSeq);
+  CH[id] = {x0, x1, X, Y, tip:tt => {
+    const rows = [];
+    if(tt <= now){ rows.push(`<b>${esc(fmtDate(tt, true))}</b>`, t('balance_after', {v:fmtMoney(histAt(tt), cur, {abs:true, dec:0})})); }
+    else if(f){ rows.push(`<b>${esc(fmtMonth(tt))}</b>`, t('pr_real') + ': ' + fmtMoney(proj('real')(tt), cur, {dec:0}));
+      if(f.enough) rows.push(t('pr_opt') + ': ' + fmtMoney(proj('opt')(tt), cur, {dec:0}), t('pr_caut') + ': ' + fmtMoney(proj('caut')(tt), cur, {dec:0}));
+      rows.push(`<span class="muted">${esc(t('finish_short'))}: ${esc(fmtEnd(f.end_real))}${f.enough ? ' · ' + esc(fmtEnd(f.end_opt)) + ' – ' + esc(fmtEnd(f.end_caut)) : ''}</span>`); }
+    else rows.push(`<b>${esc(fmtMonth(tt))}</b>`);
+    if(plan && plan(tt) != null) rows.push(`<span class="muted">${t('plan')}: ${fmtMoney(plan(tt), cur, {dec:0})}</span>`);
+    return {html:rows.join('<br>'), y:tt <= now ? Y(histAt(tt)) : f ? Y(proj('real')(tt)) : null};
+  }};
+  return `<div class="chart" data-chart="${id}"><svg viewBox="0 0 ${CW} ${CH_}" aria-label="${t('st_balance')}">
+    ${[0.5, 1].map(q => `<line class="c-grid" x1="${CPL}" x2="${CW - CPR}" y1="${Y(ymax * q)}" y2="${Y(ymax * q)}"/>`).join('')}
+    <line class="c-axis" x1="${CPL}" x2="${CW - CPR}" y1="${Y(0)}" y2="${Y(0)}"/>
+    <line class="c-now" x1="${X(now)}" x2="${X(now)}" y1="${CPT}" y2="${CH_ - CPB}"/>
+    <path class="c-area" d="${area}"/>${band}${planPath}<path class="c-line" d="${path}"/>${real}
+    ${thin.map(([tt, s]) => `<text class="c-lbl" x="${X(tt)}" y="${CH_ - 6}" text-anchor="middle">${esc(s)}</text>`).join('')}
+    <line class="c-cross" x1="0" x2="0" y1="${CPT}" y2="${CH_ - CPB}" style="display:none"/><circle class="c-dot" r="4" style="display:none"/>
+  </svg><div class="c-ymax">${esc(axisLabel(ymax, cur))}</div><div class="tip" style="display:none"></div></div>
+  <div class="legend"><span><i class="lg-line"></i>${t('st_balance')}</span>${real ? `<span><i class="lg-real"></i>${t('pr_real')}</span>` : ''}${band ? `<span><i class="lg-band"></i>${t('pr_range')}</span>` : ''}${planPath ? `<span><i class="lg-plan"></i>${t('plan')}</span>` : ''}</div>`;
+}
+// Vertical bars: items [{label, value, tip, dim}]
+function barChart(items, cur){
+  const id = 'ch' + (++chartSeq), n = items.length, max = niceMax(Math.max(1, ...items.map(i => i.value)));
+  const bw = (CW - CPL - CPR) / n, Y = v => CPT + (max - v) / max * (CH_ - CPT - CPB);
+  CH[id] = {bars:items, bw};
+  return `<div class="chart" data-chart="${id}"><svg viewBox="0 0 ${CW} ${CH_}">
+    <line class="c-grid" x1="${CPL}" x2="${CW - CPR}" y1="${Y(max / 2)}" y2="${Y(max / 2)}"/><line class="c-grid" x1="${CPL}" x2="${CW - CPR}" y1="${Y(max)}" y2="${Y(max)}"/>
+    ${items.map((it, i) => { const h = Math.max(0, Y(0) - Y(it.value)), x = CPL + i * bw + 2, w = Math.max(2, bw - 4);
+      return it.value > 0 ? `<path class="c-bar ${it.dim ? 'dim' : ''}" data-i="${i}" d="M${x},${Y(0)}v${-Math.max(0, h - 4)}q0,-4 4,-4h${w - 8}q4,0 4,4v${Math.max(0, h - 4)}z"/>` : `<line class="c-zero" x1="${x}" x2="${x + w}" y1="${Y(0) - 1}" y2="${Y(0) - 1}"/>`; }).join('')}
+    <line class="c-axis" x1="${CPL}" x2="${CW - CPR}" y1="${Y(0)}" y2="${Y(0)}"/>
+    ${items.map((it, i) => `<text class="c-lbl" x="${CPL + i * bw + bw / 2}" y="${CH_ - 6}" text-anchor="middle">${esc(it.label)}</text>`).join('')}
+  </svg><div class="c-ymax">${esc(axisLabel(max, cur))}</div><div class="tip" style="display:none"></div></div>`;
+}
+function chartPointer(ev){
+  const box = ev.target.closest && ev.target.closest('.chart'); if(!box) return;
+  const c = CH[box.dataset.chart]; if(!c) return;
+  const svg = box.querySelector('svg'), r = svg.getBoundingClientRect(), tip = box.querySelector('.tip');
+  const px = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) / r.width * CW;
+  let html, xx, yy = null;
+  if(c.bars){
+    const i = Math.max(0, Math.min(c.bars.length - 1, Math.floor((px - CPL) / c.bw)));
+    html = c.bars[i].tip; xx = CPL + i * c.bw + c.bw / 2;
+  } else {
+    const tt = c.x0 + (Math.max(CPL, Math.min(CW - CPR, px)) - CPL) / (CW - CPL - CPR) * (c.x1 - c.x0);
+    const res = c.tip(tt); html = res.html; xx = c.X(tt); yy = res.y;
+    const cr = svg.querySelector('.c-cross'), dot = svg.querySelector('.c-dot');
+    cr.setAttribute('x1', xx); cr.setAttribute('x2', xx); cr.style.display = '';
+    if(yy != null){ dot.setAttribute('cx', xx); dot.setAttribute('cy', yy); dot.style.display = ''; } else dot.style.display = 'none';
+  }
+  tip.innerHTML = html; tip.style.display = '';
+  const left = xx / CW * r.width, tw = tip.offsetWidth;
+  tip.style.left = Math.max(0, Math.min(r.width - tw, left - tw / 2)) + 'px';
+}
+function chartLeave(ev){
+  const box = ev.target.closest && ev.target.closest('.chart'); if(!box) return;
+  box.querySelector('.tip').style.display = 'none';
+  const cr = box.querySelector('.c-cross'), dot = box.querySelector('.c-dot');
+  if(cr) cr.style.display = 'none'; if(dot) dot.style.display = 'none';
+}
+document.addEventListener('pointermove', chartPointer);
+document.addEventListener('pointerdown', chartPointer);
+document.addEventListener('pointerleave', chartLeave, true);
+
+/* ---------- statistics page for one debt ---------- */
+const SS = {useLoc:false, catFlow:'give', catYear:'all'};
+function openStats(id){ SS.useLoc = false; SS.catYear = 'all'; pushLayer({type:'page', stats:id, render:() => viewStats(id)}); }
+function viewStats(id){
+  const d = debt(id); if(!d) return `<div class="top"><button class="iconbtn" data-act="back">${ICON.back}</button></div>`;
+  const p = person(d.personId), cur = d.currency, local = D.settings.localCur, now = Date.now();
+  const head = `<div class="top"><button class="iconbtn" data-act="back" aria-label="back">${ICON.back}</button><div class="brand" style="font-size:17px">${t('stats')}</div><span style="width:38px"></span></div>
+    <div class="pagehead">${avatar(p)}<div><div class="t" style="font-size:19px">${esc(p.name)} · ${esc(cur)}</div><div class="s">${esc([d.title, t('since', {d:fmtDate(d.opened, true)})].filter(Boolean).join(' · '))}</div></div></div>`;
+  const reps = repayments(d), foreign = cur !== local;
+  // 1 + 2: balance chart and finish range
+  const f = finishRange(d, now);
+  let finish = '';
+  if(f && f.months){
+    finish = f.enough
+      ? `<div class="kpis"><div><span>${t('pr_opt')}</span><b>${esc(fmtEnd(f.end_opt))}</b></div><div class="main"><span>${t('pr_real')}</span><b>${esc(fmtEnd(f.end_real))}</b></div><div><span>${t('pr_caut')}</span><b>${esc(fmtEnd(f.end_caut))}</b></div></div>
+         <div class="hint">${t('finish_hint', {n:f.months, a:fmtMoney(f.pace.real, cur, {dec:0})})}</div>`
+      : `<div class="kpis"><div class="main"><span>${t('pr_real')}</span><b>${esc(fmtEnd(f.end_real))}</b></div></div><div class="hint">${t('finish_more', {n:f.months})}</div>`;
+  }
+  const card1 = `<div class="card"><div class="ct">${t('st_balance')}</div>${balanceChart(d)}${finish}</div>`;
+  // 3: what was actually sent in local currency
+  let card3 = '';
+  if(foreign){
+    const withLoc = reps.filter(e => e.loc && e.loc.cur === local);
+    if(withLoc.length){
+      const sumLoc = withLoc.reduce((s, e) => s + e.loc.amt, 0), sumDebt = withLoc.reduce((s, e) => s - e.amount, 0);
+      const avg = sumLoc / sumDebt, todayRate = cross(cur, local), todayVal = sumDebt * todayRate, diff = sumLoc - todayVal;
+      const est = withLoc.filter(e => e.loc.inferred).length, missing = reps.length - withLoc.length;
+      card3 = `<div class="card"><div class="ct">${t('st_sent', {cur:local})}</div>
+        <div class="big2">${fmtMoney(sumLoc, local, {dec:0})}</div>
+        <div class="muted small">${t('st_sent_for', {v:fmtMoney(sumDebt, cur), n:withLoc.length})}</div>
+        <div class="res" style="margin-top:10px">
+          <div class="kv"><span>${t('st_avg_rate')}</span><b>${esc(fmtRate(avg))}</b></div>
+          <div class="kv"><span>${t('st_today_rate')}</span><b>${esc(fmtRate(todayRate))}</b></div>
+          <div class="kv"><span>${t('st_today_val')}</span><b>${fmtMoney(todayVal, local, {dec:0})}</b></div>
+        </div>
+        <div class="verify ${diff <= 0 ? 'ok' : 'bad'}" style="margin-bottom:0">${diff <= 0 ? t('st_cheaper', {v:fmtMoney(-diff, local, {dec:0})}) : t('st_dearer', {v:fmtMoney(diff, local, {dec:0})})}</div>
+        ${est || missing ? `<div class="hint" style="margin-bottom:0">${[est ? t('st_est', {n:est}) : '', missing ? t('st_missing', {n:missing, cur:local}) : ''].filter(Boolean).join(' ')}</div>` : ''}</div>`;
+    }
+  }
+  // 4: monthly repayments, last 12 months incl. the current one
+  const curI = monthIndex(now), idx12 = []; for(let i = curI - 11; i <= curI; i++) idx12.push(i);
+  const hasLoc = foreign && reps.some(e => e.loc && e.loc.cur === local);
+  const useLoc = SS.useLoc && hasLoc, ucur = useLoc ? local : cur;
+  const mDebt = monthlyRepaid(d, idx12, false), mLoc = monthlyRepaid(d, idx12, true);
+  const vals = useLoc ? mLoc : mDebt;
+  const items = idx12.map((i, k) => ({label:new Date(msOfIndex(i)).toLocaleDateString(LOCALE[lang], {month:'narrow'}), value:vals[k], dim:i === curI,
+    tip:`<b>${esc(fmtMonth(msOfIndex(i)))}</b><br>${fmtMoney(mDebt[k], cur, {dec:0})}${hasLoc && mLoc[k] ? ' · ' + fmtMoney(mLoc[k], local, {dec:0}) : ''}${i === curI ? `<br><span class="muted">${t('st_partial')}</span>` : ''}`}));
+  const toggle = hasLoc ? `<div class="seg" style="margin:0 0 10px"><button class="${useLoc ? '' : 'on'}" data-act="st-loc" data-v="0">${cur}</button><button class="${useLoc ? 'on' : ''}" data-act="st-loc" data-v="1">${local} ${t('st_sent_short')}</button></div>` : '';
+  const sum12 = vals.reduce((a, b) => a + b, 0);
+  const card4 = `<div class="card"><div class="ct">${t('st_monthly')}</div>${toggle}${barChart(items, ucur)}
+    <div class="hint" style="margin-bottom:0">${t('st_12_total', {v:fmtMoney(sum12, ucur, {dec:0}), a:fmtMoney(sum12 / 12, ucur, {dec:0})})}${useLoc && reps.some(e => !e.loc && monthIndex(e.date) >= curI - 11) ? ' ' + t('st_loc_only') : ''}</div></div>`;
+  // 5: this year vs last year
+  const y = new Date(now).getFullYear(), dayOfYear = now - new Date(y, 0, 1).getTime();
+  const yearStats = yr => {
+    const list = reps.filter(e => new Date(e.date).getFullYear() === yr);
+    const val = e => useLoc ? (e.loc ? e.loc.amt : 0) : -e.amount;
+    const byM = {}; for(const e of list){ const m = new Date(e.date).getMonth(); byM[m] = (byM[m] || 0) + val(e); }
+    const best = Object.keys(byM).sort((a, b) => byM[b] - byM[a])[0];
+    const ytd = list.filter(e => e.date - new Date(yr, 0, 1).getTime() <= dayOfYear).reduce((s, e) => s + val(e), 0);
+    return {total:list.reduce((s, e) => s + val(e), 0), n:list.length, ytd, best:best != null ? {m:+best, v:byM[best]} : null};
+  };
+  const A = yearStats(y), B = yearStats(y - 1);
+  const change = B.ytd > 0 ? Math.round((A.ytd - B.ytd) / B.ytd * 100) : null;
+  const mName = m => new Date(2000, m, 1).toLocaleDateString(LOCALE[lang], {month:'long'});
+  const card5 = (A.n || B.n) ? `<div class="card"><div class="ct">${t('st_years')}</div>
+    <table class="tbl"><thead><tr><th></th><th>${y}</th><th>${y - 1}</th></tr></thead><tbody>
+      <tr><td>${t('st_until', {d:fmtDate(now)})}</td><td>${fmtMoney(A.ytd, ucur, {dec:0})}</td><td>${fmtMoney(B.ytd, ucur, {dec:0})}</td></tr>
+      <tr><td>${t('st_whole_year')}</td><td class="muted">${fmtMoney(A.total, ucur, {dec:0})}</td><td>${fmtMoney(B.total, ucur, {dec:0})}</td></tr>
+      <tr><td>${t('st_count')}</td><td>${A.n}</td><td>${B.n}</td></tr>
+      <tr><td>${t('st_best')}</td><td>${A.best ? esc(mName(A.best.m)) + '<br><small>' + fmtMoney(A.best.v, ucur, {dec:0}) + '</small>' : '–'}</td><td>${B.best ? esc(mName(B.best.m)) + '<br><small>' + fmtMoney(B.best.v, ucur, {dec:0}) + '</small>' : '–'}</td></tr>
+    </tbody></table>
+    ${change != null ? `<div class="hint" style="margin-bottom:0">${change >= 0 ? t('st_more_pct', {n:change}) : t('st_less_pct', {n:-change})}</div>` : ''}</div>` : '';
+  // 10: categories from notes
+  const card10 = categoryCard(d);
+  return head + card1 + card3 + card4 + card5 + card10;
+}
+function categoryCard(d){
+  const all = D.entries.filter(e => e.debtId === d.id && e.kind === 'tx');
+  if(!all.some(e => categoryOf(e.note) !== 'other')) return '';
+  const years = [...new Set(all.map(e => new Date(e.date).getFullYear()))].sort((a, b) => b - a);
+  const list = all.filter(e => (gaveFlow(d, e.amount) ? 'give' : 'get') === SS.catFlow && (SS.catYear === 'all' || new Date(e.date).getFullYear() === +SS.catYear));
+  const sums = {}; for(const e of list){ const c = categoryOf(e.note); sums[c] = (sums[c] || 0) + Math.abs(e.amount); }
+  const order = [...D.settings.cats.map(c => c.id), 'other'].filter(c => sums[c]).sort((a, b) => (a === 'other') - (b === 'other') || sums[b] - sums[a]);
+  const max = Math.max(1, ...order.map(c => sums[c])), total = order.reduce((s, c) => s + sums[c], 0);
+  const name = id => id === 'other' ? t('cat_other') : catName(D.settings.cats.find(c => c.id === id) || {id});
+  return `<div class="card"><div class="ct">${t('st_cats')}</div>
+    <div class="seg" style="margin:0 0 8px"><button class="${SS.catFlow === 'give' ? 'on' : ''}" data-act="st-flow" data-v="give">${t('given')}</button><button class="${SS.catFlow === 'get' ? 'on' : ''}" data-act="st-flow" data-v="get">${t('received')}</button></div>
+    <div class="chips" style="margin-bottom:10px"><button class="chip ${SS.catYear === 'all' ? 'on' : ''}" data-act="st-year" data-v="all">${t('st_all')}</button>${years.map(yr => `<button class="chip ${String(SS.catYear) === String(yr) ? 'on' : ''}" data-act="st-year" data-v="${yr}">${yr}</button>`).join('')}</div>
+    ${order.length ? order.map(c => `<button class="hbar" data-act="st-cat" data-id="${d.id}" data-cat="${c}"><span class="hn">${esc(name(c))}</span><span class="ht"><i style="width:${Math.max(2, sums[c] / max * 100)}%" class="${c === 'other' ? 'dim' : ''}"></i></span><span class="hv">${fmtMoney(sums[c], d.currency, {dec:0})}</span></button>`).join('')
+      : `<div class="muted small">${t('no_entries')}</div>`}
+    ${total ? `<div class="hint" style="margin-bottom:0">${t('st_cats_hint')}</div>` : ''}</div>`;
+}
+function showCategoryEntries(debtId, cat){
+  const d = debt(debtId);
+  const list = D.entries.filter(e => e.debtId === debtId && e.kind === 'tx' && categoryOf(e.note) === cat &&
+    (gaveFlow(d, e.amount) ? 'give' : 'get') === SS.catFlow && (SS.catYear === 'all' || new Date(e.date).getFullYear() === +SS.catYear)).sort((a, b) => b.date - a.date);
+  const name = cat === 'other' ? t('cat_other') : catName(D.settings.cats.find(c => c.id === cat) || {id:cat});
+  pushLayer({type:'sheet', render:() => `<h3>${esc(name)}</h3><div class="list">${list.map(e => entryRow(e, {})).join('')}</div>`});
+}
+
+/* ---------- category editor (settings) ---------- */
+function openCats(){ pushLayer({type:'page', render:viewCats}); }
+function viewCats(){
+  return `<div class="top"><button class="iconbtn" data-act="back">${ICON.back}</button><div class="brand" style="font-size:17px">${t('cats')}</div><span style="width:38px"></span></div>
+    <div class="hint">${t('cats_hint')}</div>
+    ${D.settings.cats.map((c, i) => `<div class="card">
+      <label class="f"><span>${t('name')}</span><input class="inp" data-cat-name="${i}" value="${esc(catName(c))}" autocomplete="off"></label>
+      <label class="f" style="margin-bottom:8px"><span>${t('cats_words')}</span><textarea class="inp" rows="2" data-cat-words="${i}">${esc(c.words.join(', '))}</textarea></label>
+      <button class="btn sm danger" data-act="cat-del" data-i="${i}">${t('del')}</button></div>`).join('')}
+    <div class="btnrow"><button class="btn ghost" data-act="cat-add">${ICON.plus}${t('cats_add')}</button><button class="btn ghost" data-act="cat-reset">${t('cats_reset')}</button></div>`;
+}
+
+/* ---------- "same as last time" ---------- */
+function lastTx(debtId){ return D.entries.filter(e => e.debtId === debtId && e.kind === 'tx').sort((a, b) => b.date - a.date)[0] || null; }
+// Copies flow, amount and note from an earlier entry into the form; the date stays as it is.
+// A foreign-currency entry keeps the local amount sent and is recalculated at today's rate.
+function fillFromEntry(e){
+  const d = debt(e.debtId);
+  F.flow = gaveFlow(d, e.amount) ? 'give' : 'get'; F.note = e.note; F.err = '';
+  if(e.loc && d.currency !== D.settings.localCur && e.loc.cur === D.settings.localCur){
+    F.loc = fmtInput(e.loc.amt); F.rateTouched = false; F.rate = fmtRate(cross(d.currency, D.settings.localCur, F.date));
+    F.amtAuto = true; const r = parseNum(F.rate); F.amt = r > 0 ? fmtInput(e.loc.amt / r) : fmtInput(Math.abs(e.amount));
+  } else { F.amt = fmtInput(Math.abs(e.amount)); F.loc = ''; F.amtAuto = false; }
+}
+function repeatChip(){
+  if(F.editId || F.kind === 'close') return '';
+  const acc = formAccount(); if(!acc) return '';
+  const e = lastTx(acc.id); if(!e) return '';
+  const d = acc, amt = e.loc && d.currency !== D.settings.localCur ? fmtMoney(e.loc.amt, e.loc.cur, {dec:0}) : fmtMoney(Math.abs(e.amount), d.currency);
+  return `<div class="chips"><button class="chip" data-act="f-repeat" data-id="${e.id}">↻ ${t('same_as_last')}: ${gaveFlow(d, e.amount) ? t('give') : t('get')} ${amt}${e.note && !noteLocal(e.note) ? ' · ' + esc(e.note.slice(0, 24)) : ''}</button></div>`;
+}
+
 /* ================= events ================= */
 document.addEventListener('click', async ev => {
   const el = ev.target.closest('[data-act],[data-tab],[data-person],[data-entry]');
@@ -1643,6 +2049,21 @@ document.addEventListener('click', async ev => {
     case 'f-day': F.date = startOfDay(Date.now()) - (+el.dataset.d) * DAY + 12 * 3600e3; if(+el.dataset.d === 0) F.date = Date.now(); drawLayers(); if(F.cur !== D.settings.localCur) loadRateForDate(); break;
     case 'f-save': saveEntry(); break;
     case 'f-delete': deleteEntry(); break;
+    case 'f-repeat': { const e = D.entries.find(x => x.id === id); if(e){ fillFromEntry(e); drawLayers(); } break; }
+    case 'f-repeat-today': {
+      const e = D.entries.find(x => x.id === F.editId); if(!e) break;
+      await popLayer(); openEntry({debtId:e.debtId}); fillFromEntry(e); drawLayers(); break;
+    }
+    // statistics
+    case 'stats': openStats(id); break;
+    case 'st-loc': SS.useLoc = el.dataset.v === '1'; drawLayers(); break;
+    case 'st-flow': SS.catFlow = el.dataset.v; drawLayers(); break;
+    case 'st-year': SS.catYear = el.dataset.v; drawLayers(); break;
+    case 'st-cat': showCategoryEntries(id, el.dataset.cat); break;
+    case 'cats': openCats(); break;
+    case 'cat-add': D.settings.cats.push({id:'c' + uid(), name:t('cats_add') + ' ' + (D.settings.cats.length + 1), words:[]}); save(); drawLayers(); break;
+    case 'cat-del': D.settings.cats.splice(+el.dataset.i, 1); D.settings.cats = D.settings.cats.slice(); save(); drawLayers(); break;
+    case 'cat-reset': if(await ask(t('cats_reset_q'), t('cats_reset'))){ D.settings.cats = defaultCats(); save(); drawLayers(); } break;
     // settings
     case 'rate-edit': editRate(el.dataset.cur); break;
     case 'rates-refresh': updateRates(true); break;
@@ -1674,6 +2095,12 @@ document.addEventListener('change', ev => {
     else if(k === 'localCur'){ s.localCur = el.value; s.curAuto = false; }
     else if(k === 'curAuto'){ s.curAuto = el.checked; if(s.curAuto) detectCurrency(); }
     save(); refresh(); return;
+  }
+  if(el.dataset.catName != null || el.dataset.catWords != null){
+    const i = +(el.dataset.catName != null ? el.dataset.catName : el.dataset.catWords), c = D.settings.cats[i]; if(!c) return;
+    if(el.dataset.catName != null){ const v = el.value.trim(); c.name = v && v !== catName({id:c.id}) ? v : (L['cat_' + c.id] ? '' : v); }
+    else c.words = el.value.split(/[,\n]/).map(w => w.trim()).filter(Boolean);
+    D.settings.cats = D.settings.cats.slice(); save(); return;
   }
   if(F && topLayer() && topLayer().form) onFormChange(el);
 });
